@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.pyirc
 test_table.py
 
 .venv/
