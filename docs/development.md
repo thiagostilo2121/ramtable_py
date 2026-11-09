@@ -1,7 +1,16 @@
 # Development and releases
 
-This document summarizes the repository layout and how to prepare a release.
-It does not change or extend the RAMTable API.
+This document summarizes the repository layout, the local workflow, and
+how to prepare a release. It does not change or extend the RAMTable API.
+
+## Contents
+
+- [Project layout](#project-layout)
+- [Set up a local environment](#set-up-a-local-environment)
+- [Build distributions](#build-distributions)
+- [Versioning](#versioning)
+- [Preparing a release](#preparing-a-release)
+- [Project status](#project-status)
 
 ## Project layout
 
@@ -18,6 +27,10 @@ It does not change or extend the RAMTable API.
 │       ├── table.py
 │       └── types.py
 ├── docs/
+│   ├── api.md
+│   ├── development.md
+│   ├── guide.md
+│   └── types-and-validation.md
 └── test_table.py
 ```
 
@@ -40,7 +53,7 @@ Run the example from the repository root:
 python test_table.py
 ```
 
-Expected output includes:
+Expected output:
 
 ```text
 ['Alice', 'Bob']
@@ -48,8 +61,8 @@ Expected output includes:
 ```
 
 The repository currently contains an executable example rather than an
-automated test suite. When tests are added, document the official command here
-and run them before releasing.
+automated test suite. When tests are added, document the official command
+here and run them before releasing.
 
 ## Build distributions
 
@@ -71,7 +84,7 @@ The project uses `MAJOR.MINOR.PATCH` versions:
 - `MINOR` for compatible functionality;
 - `MAJOR` for breaking API or behavior changes.
 
-Before a release:
+## Preparing a release
 
 1. Update `project.version` in `pyproject.toml`.
 2. Add a section for the version and its changes at the top of
@@ -79,11 +92,12 @@ Before a release:
 3. Check that the README and documentation describe current behavior.
 4. Run the example and all available build/test checks.
 5. Build and inspect the wheel and source distribution.
-6. Publish to TestPyPI first to validate the distribution; publish to official
-   PyPI only when the release is approved.
+6. Publish to TestPyPI first to validate the distribution; publish to
+   official PyPI only when the release is approved.
 
-Do not commit passwords, tokens, or credentials. Use the publishing service's
-secrets and review the GitHub Actions workflow before enabling a release.
+Do not commit passwords, tokens, or credentials. Use the publishing
+service's secrets and review the GitHub Actions workflow before enabling a
+release.
 
 ## Project status
 
