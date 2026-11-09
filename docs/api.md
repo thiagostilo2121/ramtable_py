@@ -1,0 +1,355 @@
+# API reference
+
+This document describes RAMTable's symbols and methods, including arguments,
+return values, and errors. The three main objects are exported from
+`ramtable`:
+
+```python
+from ramtable import Columns, Rows, Table
+```
+
+In normal use, create a `Table`; it constructs coordinated `Columns` and
+`Rows` instances. `TypeValidator` is available from `ramtable.types`.
+
+## `Table`
+
+```python
+Table(name: str, columns: dict[str, Any])
+```
+
+The main container for a table's name, schema, and rows. Data is not
+persistent. `table.columns` and `table.rows` refer to components that share
+the same record storage.
+
+### Constructor
+
+**Arguments**
+
+- `name`: descriptive name. Must be a non-empty string and cannot consist
+  only of whitespace.
+- `columns`: non-empty dictionary mapping each column name to an annotation
+  supported by `TypeValidator`.
+
+**Raises**
+
+- `ValueError`: invalid table name, empty schema, or invalid column name.
+- `TypeError`: unsupported column type.
+
+### `Table.clear() -> None`
+
+Remove all records by calling `rows.clear()`. The table name and schema are
+preserved.
+
+### `len(table) -> int`
+
+Return the current number of rows.
+
+### `repr(table) -> str`
+
+Return a debugging representation containing the name, column names, and row
+count. This is not a serialization format.
+
+## `Columns`
+
+Manage a table's column schema. The instance created by `Table` keeps a
+shallow copy of the initial schema dictionary and shares the table's row
+storage.
+
+### Constructor
+
+```python
+Columns(columns: dict[str, Any], rows_storage: list[dict[str, Any]])
+```
+
+Create the schema and validate that it is not empty, that every name is a
+non-empty string, and that every type is supported by `TypeValidator`.
+
+**Arguments**
+
+- `columns`: mapping from column names to type annotations.
+- `rows_storage`: storage shared with `Rows`.
+
+**Raises**
+
+- `ValueError`: empty schema or invalid column name.
+- `TypeError`: unsupported annotation.
+
+This constructor is primarily used internally by `Table`.
+
+### `Columns.add(name, column_type, default=...) -> None`
+
+Add a column to the schema.
+
+**Arguments**
+
+- `name`: new non-empty column name.
+- `column_type`: supported annotation for the column.
+- `default`: optional value. Required if rows already exist; it is validated
+  against `column_type` and deep-copied separately for every row. If there are
+  no rows, the default is not stored.
+
+**Raises**
+
+- `ValueError`: invalid or duplicate name, or a missing default when rows
+  exist.
+- `TypeError`: unsupported annotation or incompatible default.
+
+Default values are prepared before rows are changed. If copying fails, the
+column is not added.
+
+### `Columns.remove(name) -> None`
+
+Remove a column from the schema and the corresponding key from every row.
+
+**Arguments**
+
+- `name`: existing column name.
+
+**Raises**
+
+- `ValueError`: the column does not exist or is the last column.
+
+### `Columns.update(name, new_type) -> None`
+
+Change a column's annotation without converting its values.
+
+**Arguments**
+
+- `name`: existing column name.
+- `new_type`: annotation supported by `TypeValidator`.
+
+All current values are checked first. The schema is changed only if every
+value matches `new_type`.
+
+**Raises**
+
+- `ValueError`: the column does not exist.
+- `TypeError`: the new annotation is unsupported or an existing value does
+  not match it.
+
+### `Columns.get(name) -> Any`
+
+Return the annotation associated with `name`.
+
+**Raises:** `ValueError` if the column does not exist.
+
+### `Columns.get_all() -> dict[str, Any]`
+
+Return a shallow copy of the schema dictionary. Modifying the returned
+dictionary does not change the schema.
+
+### `name in columns -> bool`
+
+Return whether the name is present in the schema.
+
+### `len(columns) -> int`
+
+Return the number of columns.
+
+### `repr(columns) -> str`
+
+Return a debugging representation of the schema.
+
+## `Rows`
+
+Manage rows according to a `Columns` instance. `Table` constructs this class
+with shared row storage.
+
+### Constructor
+
+```python
+Rows(columns: Columns, storage: list[dict[str, Any]])
+```
+
+**Arguments**
+
+- `columns`: schema used to validate rows.
+- `storage`: shared list used to store records.
+
+This constructor is primarily used internally by `Table`.
+
+### `Rows.insert(row) -> None`
+
+Validate and append a shallow copy of `row`.
+
+**Arguments**
+
+- `row`: dictionary containing exactly the schema keys and values compatible
+  with their declared types.
+
+**Raises**
+
+- `TypeError`: `row` is not a dictionary or a value does not match its type.
+- `ValueError`: keys are missing or undeclared.
+
+The copy is shallow; mutable values may remain shared.
+
+### `Rows.remove(row) -> None`
+
+Validate `row` and remove the first row equal to it according to Python
+equality.
+
+**Arguments**
+
+- `row`: dictionary with the keys and values required by the schema.
+
+**Raises**
+
+- `TypeError`: the row object or a value is incompatible.
+- `ValueError`: the structure is invalid or no equal row exists.
+
+### `Rows.update(where, values) -> int`
+
+Update every row that matches all equality conditions.
+
+**Arguments**
+
+- `where`: non-empty dictionary mapping existing column names to comparison
+  values. These values are not checked against the column types.
+- `values`: non-empty dictionary mapping existing column names to new values.
+  Each value is checked against its declared type.
+
+**Returns**
+
+- Number of updated rows, possibly zero.
+
+**Raises**
+
+- `ValueError`: either argument is empty or is not a dictionary, or a
+  non-existent column is named.
+- `TypeError`: a new value does not match its column type.
+
+Arguments are validated and matches are determined before any changes are
+applied. Conditions use `==`; their types are not compared strictly.
+
+### `Rows.clear() -> None`
+
+Remove all rows while preserving the schema.
+
+### `Rows.get(*indices) -> list[dict[str, Any]]`
+
+With no arguments, return all rows. With indexes, return a shallow copy of
+each requested row, in argument order.
+
+**Arguments**
+
+- `indices`: zero or more integer indexes. Negative and repeated indexes are
+  supported; `bool` is rejected.
+
+**Raises**
+
+- `TypeError`: an index is not an integer or is a boolean.
+- `IndexError`: an index is out of range.
+
+### `Rows.get_one(index) -> dict[str, Any]`
+
+Return a shallow copy of one row.
+
+**Arguments**
+
+- `index`: integer index, positive or negative. Cannot be `bool`.
+
+**Raises**
+
+- `TypeError`: the index is not an integer or is a boolean.
+- `IndexError`: the index is out of range.
+
+### `Rows.get_all() -> list[dict[str, Any]]`
+
+Return a new list containing a shallow copy of every row.
+
+### `Rows.get_columns(*columns) -> dict[str, list[Any]]`
+
+Return a list of values for each requested column name. With no arguments,
+return every column in the schema.
+
+**Arguments**
+
+- `columns`: names of existing columns. Duplicate names are allowed; each key
+  appears only once in the returned dictionary.
+
+**Returns**
+
+- New dictionary of column names to new lists of values. Values are not
+  copied.
+
+**Raises:** `ValueError` if a requested name does not exist.
+
+### `Rows.get_column(column) -> list[Any]`
+
+Return a new list containing all values from one column. Values are not
+copied.
+
+**Arguments**
+
+- `column`: name of an existing column.
+
+**Raises:** `ValueError` if the column does not exist.
+
+### Iteration, length, and representation
+
+- `len(rows) -> int`: current number of rows.
+- `iter(rows)`: iterate over shallow copies of the rows.
+- `repr(rows) -> str`: debugging representation containing the row count.
+
+## `TypeValidator`
+
+Class with class methods in `ramtable.types`. Import it with:
+
+```python
+from ramtable.types import TypeValidator
+```
+
+Its use is optional; RAMTable invokes it when validating columns, rows, and
+assigned values.
+
+### `TypeValidator.is_supported_type(value_type) -> bool`
+
+Return whether RAMTable can evaluate the annotation form. This does not
+validate a particular value or run validators embedded in `Annotated`
+metadata.
+
+**Arguments**
+
+- `value_type`: class or annotation to check.
+
+**Returns**
+
+- `True` if the annotation form is supported, otherwise `False`.
+
+### `TypeValidator.matches_type(value, value_type) -> bool`
+
+Check whether a value matches a supported annotation. Parameterized
+containers are checked recursively. Simple classes use `isinstance`;
+`Literal` compares both value and exact type. The value is not converted.
+
+**Arguments**
+
+- `value`: object to validate.
+- `value_type`: supported class or annotation.
+
+**Returns**
+
+- `True` if the value matches, otherwise `False`. If a class annotation
+  cannot be used with `isinstance`, this method returns `False`.
+
+See [types and validation](types-and-validation.md) for supported annotations
+and comparison details.
+
+## Internal helpers
+
+These methods are implementation details and are not part of the stable API:
+
+- `Columns._validate_name(name)`: checks that a name is a non-empty string
+  containing non-whitespace characters; raises `ValueError` otherwise.
+- `Columns._validate_type(column_type)`: checks an annotation with
+  `TypeValidator`; raises `TypeError` if unsupported.
+- `Rows._validate(row)`: checks the object type, exact set of columns, and
+  values; raises `TypeError` or `ValueError` depending on the failure.
+
+## Copying behavior
+
+The schema and returned row dictionaries are shallow copies. The lists and
+dictionaries returned by `get_columns` and `get_column` are new, but their
+items are not copied. The exception is `Columns.add` when rows already exist:
+it deep-copies the default value for each record.

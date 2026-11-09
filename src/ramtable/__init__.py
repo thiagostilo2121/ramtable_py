@@ -1,7 +1,7 @@
-"""API pública de RAMTable.
+"""Public RAMTable API.
 
-Expone :class:`Columns`, :class:`Rows` y :class:`Table` desde el paquete
-``ramtable`` para ofrecer una ruta de importación concisa y estable.
+Expose :class:`Columns`, :class:`Rows`, and :class:`Table` from the
+``ramtable`` package as a concise, stable import path.
 """
 
 from .columns import Columns

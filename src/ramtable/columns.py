@@ -1,5 +1,5 @@
 
-"""Esquema mutable de columnas y validación de sus cambios."""
+"""Mutable column schema and validation of schema changes."""
 
 from copy import deepcopy
 from typing import Any
@@ -10,11 +10,11 @@ _MISSING = object()
 
 
 class Columns:
-    """Administra los nombres y tipos asociados a las columnas de una tabla.
+    """Manage the names and types associated with a table's columns.
 
-    La instancia mantiene una copia del esquema recibido y comparte el
-    almacenamiento de filas de la tabla propietaria para aplicar cambios al
-    esquema de forma coherente con los registros existentes.
+    The instance keeps a copy of the supplied schema and shares its owning
+    table's row storage so schema changes remain consistent with existing
+    records.
     """
 
     def __init__(
@@ -22,15 +22,15 @@ class Columns:
         columns: dict[str, Any],
         rows_storage: list[dict[str, Any]],
     ) -> None:
-        """Crea un esquema no vacío asociado al almacenamiento de filas.
+        """Create a non-empty schema associated with row storage.
 
         Args:
-            columns: Mapa entre cada nombre de columna y su tipo admitido.
-            rows_storage: Lista compartida de registros de la tabla.
+            columns: Mapping of column names to supported types.
+            rows_storage: Shared list of table records.
 
         Raises:
-            ValueError: Si el esquema está vacío o un nombre no es válido.
-            TypeError: Si alguna anotación de tipo no está admitida.
+            ValueError: If the schema is empty or a name is invalid.
+            TypeError: If a type annotation is unsupported.
         """
         if not isinstance(columns, dict) or not columns:
             raise ValueError("Table must have at least one column.")
@@ -44,13 +44,13 @@ class Columns:
 
     @staticmethod
     def _validate_name(name: str) -> None:
-        """Rechaza nombres de columna que no sean cadenas no vacías."""
+        """Reject column names that are not non-empty strings."""
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Column names must be non-empty strings.")
 
     @staticmethod
     def _validate_type(column_type: object) -> None:
-        """Rechaza anotaciones que el validador de RAMTable no admite."""
+        """Reject annotations unsupported by RAMTable's type validator."""
         if not TypeValidator.is_supported_type(column_type):
             raise TypeError(
                 f"Unsupported column type: {column_type!r}"
@@ -62,17 +62,16 @@ class Columns:
         column_type: Any,
         default: Any = _MISSING,
     ) -> None:
-        """Añade una columna y, si corresponde, la inicializa en las filas.
+        """Add a column and initialize existing rows when necessary.
 
-        Cuando ya hay registros, ``default`` es obligatorio. Se crea una
-        copia profunda del valor por cada registro para que los valores
-        mutables predeterminados no se compartan entre filas. Si no hay filas,
-        el valor predeterminado opcional no se almacena.
+        If records already exist, ``default`` is required. A deep copy of the
+        value is created for each record so mutable defaults are not shared
+        between rows. If there are no rows, an optional default is not stored.
 
         Raises:
-            ValueError: Si el nombre está vacío, ya existe o falta un valor
-                predeterminado requerido.
-            TypeError: Si el tipo o el valor predeterminado no son válidos.
+            ValueError: If the name is empty, already exists, or a required
+                default is missing.
+            TypeError: If the type or default value is invalid.
         """
 
         self._validate_name(name)
@@ -106,10 +105,10 @@ class Columns:
         self._columns[name] = column_type
 
     def remove(self, name: str) -> None:
-        """Elimina una columna del esquema y de todos los registros.
+        """Remove a column from the schema and all records.
 
         Raises:
-            ValueError: Si la columna no existe o es la última columna.
+            ValueError: If the column does not exist or is the last column.
         """
 
         if name not in self._columns:
@@ -126,15 +125,15 @@ class Columns:
         del self._columns[name]
 
     def update(self, name: str, new_type: Any) -> None:
-        """Cambia el tipo declarado si todos los valores actuales coinciden.
+        """Change a column's declared type if all current values match.
 
-        No convierte los valores almacenados. El cambio se aplica solo después
-        de validar todos los registros.
+        Stored values are not converted. The change is applied only after
+        every record has been validated.
 
         Raises:
-            ValueError: Si la columna no existe.
-            TypeError: Si el nuevo tipo no se admite o algún valor actual no
-                satisface el tipo nuevo.
+            ValueError: If the column does not exist.
+            TypeError: If the new type is unsupported or any current value
+                does not match it.
         """
 
         if name not in self._columns:
@@ -154,10 +153,10 @@ class Columns:
         self._columns[name] = new_type
 
     def get(self, name: str) -> Any:
-        """Devuelve la anotación de tipo de una columna.
+        """Return the type annotation of a column.
 
         Raises:
-            ValueError: Si la columna no existe.
+            ValueError: If the column does not exist.
         """
 
         if name not in self._columns:
@@ -166,17 +165,17 @@ class Columns:
         return self._columns[name]
 
     def get_all(self) -> dict[str, Any]:
-        """Devuelve una copia superficial del esquema completo."""
+        """Return a shallow copy of the complete schema."""
         return self._columns.copy()
 
     def __contains__(self, name: str) -> bool:
-        """Indica si ``name`` está declarado en el esquema."""
+        """Return whether ``name`` is declared in the schema."""
         return name in self._columns
 
     def __len__(self) -> int:
-        """Devuelve la cantidad de columnas declaradas."""
+        """Return the number of declared columns."""
         return len(self._columns)
 
     def __repr__(self) -> str:
-        """Devuelve una representación orientada a depuración del esquema."""
+        """Return a debugging representation of the schema."""
         return f"Columns({self._columns!r})"

@@ -1,5 +1,5 @@
 
-"""Validación recursiva de anotaciones de tipos para RAMTable."""
+"""Recursive validation of type annotations for RAMTable."""
 
 import types as std_types
 from collections import abc
@@ -7,19 +7,20 @@ from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
 
 class TypeValidator:
-    """Comprueba anotaciones admitidas y valores compatibles con ellas.
+    """Check supported annotations and whether values match them.
 
-    La validación se realiza en tiempo de ejecución; no convierte valores ni
-    implementa todas las reglas estáticas de los verificadores de tipos.
+    Validation is performed at runtime; it does not convert values or
+    implement every static type-checking rule.
     """
 
     @classmethod
     def is_supported_type(cls, value_type: object) -> bool:
-        """Indica si ``value_type`` es una anotación que RAMTable puede validar.
+        """Return whether ``value_type`` is an annotation RAMTable can check.
 
-        Admite clases, ``Any``, ``None``, ``Annotated``, uniones, ``Literal``,
-        colecciones comunes parametrizadas, tuplas fijas o variádicas y
-        ``type[T]``. Devuelve ``False`` para otras formas de anotación.
+        Supported forms include classes, ``Any``, ``None``, ``Annotated``,
+        unions, ``Literal``, common parameterized collections, fixed or
+        variadic tuples, and ``type[T]``. Other annotation forms return
+        ``False``.
         """
         if value_type is Any or value_type is None:
             return True
@@ -72,13 +73,12 @@ class TypeValidator:
 
     @classmethod
     def matches_type(cls, value: object, value_type: object) -> bool:
-        """Comprueba recursivamente si ``value`` satisface ``value_type``.
+        """Recursively check whether ``value`` matches ``value_type``.
 
-        Los tipos simples siguen la semántica de ``isinstance`` de Python
-        (por ejemplo, ``bool`` también coincide con ``int``). Las anotaciones
-        ``Annotated`` validan su tipo base; ``Literal`` exige igualdad y el
-        mismo tipo exacto. Los elementos y claves de los contenedores
-        parametrizados también se validan.
+        Simple types follow Python's ``isinstance`` semantics (for example,
+        ``bool`` also matches ``int``). ``Annotated`` checks its base type;
+        ``Literal`` requires equality and an exact type match. Elements and
+        keys in parameterized containers are also checked.
         """
         if value_type is Any:
             return True

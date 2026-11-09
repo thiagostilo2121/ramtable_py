@@ -1,5 +1,5 @@
 
-"""Operaciones de inserción, consulta, actualización y borrado de filas."""
+"""Row insertion, retrieval, update, and removal operations."""
 
 from typing import Any
 
@@ -8,12 +8,11 @@ from .types import TypeValidator
 
 
 class Rows:
-    """Proporciona operaciones sobre las filas de una tabla.
+    """Provide operations on a table's rows.
 
-    Las filas se almacenan como diccionarios en un almacenamiento compartido
-    con :class:`Columns`. Las copias devueltas son superficiales: los
-    diccionarios son nuevos, pero los objetos mutables que contienen pueden
-    seguir compartidos.
+    Rows are stored as dictionaries in storage shared with :class:`Columns`.
+    Returned copies are shallow: the dictionaries are new, but mutable
+    objects they contain may still be shared.
     """
 
     def __init__(
@@ -21,22 +20,22 @@ class Rows:
         columns: Columns,
         storage: list[dict[str, Any]],
     ) -> None:
-        """Vincula la vista de filas con el esquema y el almacenamiento.
+        """Bind the row view to its schema and storage.
 
         Args:
-            columns: Esquema que cada fila debe satisfacer.
-            storage: Lista compartida en la que se guardan las filas.
+            columns: Schema that each row must satisfy.
+            storage: Shared list used to store rows.
         """
         self._columns = columns
         self._storage = storage
 
     def _validate(self, row: dict[str, Any]) -> None:
-        """Valida que una fila tenga todas las columnas y tipos correctos.
+        """Validate that a row has exactly the required columns and types.
 
         Raises:
-            TypeError: Si ``row`` no es un diccionario o un valor no coincide
-                con el tipo declarado.
-            ValueError: Si faltan columnas o hay columnas no declaradas.
+            TypeError: If ``row`` is not a dictionary or a value does not
+                match its declared type.
+            ValueError: If columns are missing or undeclared.
         """
         if not isinstance(row, dict):
             raise TypeError("Row must be a dictionary.")
@@ -67,23 +66,22 @@ class Rows:
                 )
 
     def insert(self, row: dict[str, Any]) -> None:
-        """Valida e inserta una copia superficial de ``row`` al final.
+        """Validate and append a shallow copy of ``row``.
 
         Raises:
-            TypeError: Si la fila o alguno de sus valores no es válido.
-            ValueError: Si la fila no tiene exactamente las columnas del
-                esquema.
+            TypeError: If the row or one of its values is invalid.
+            ValueError: If the row does not have exactly the schema columns.
         """
 
         self._validate(row)
         self._storage.append(row.copy())
 
     def remove(self, row: dict[str, Any]) -> None:
-        """Elimina la primera fila igual a ``row`` tras validar su estructura.
+        """Remove the first row equal to ``row`` after validating its shape.
 
         Raises:
-            TypeError: Si la fila o alguno de sus valores no es válido.
-            ValueError: Si la fila no coincide con el esquema o no existe.
+            TypeError: If the row or one of its values is invalid.
+            ValueError: If the row does not match the schema or does not exist.
         """
 
         self._validate(row)
@@ -101,25 +99,25 @@ class Rows:
         where: dict[str, Any],
         values: dict[str, Any],
     ) -> int:
-        """Actualiza campos de todas las filas que satisfacen ``where``.
+        """Update fields in every row that satisfies ``where``.
 
-        Tanto ``where`` como ``values`` deben ser diccionarios no vacíos y
-        nombrar columnas existentes. Los valores nuevos se validan según el
-        esquema; las condiciones se comparan por igualdad y sus valores no se
-        validan contra el tipo de la columna. La operación valida toda la
-        solicitud antes de modificar filas.
+        Both ``where`` and ``values`` must be non-empty dictionaries containing
+        existing column names. New values are validated against the schema;
+        conditions use equality and their values are not checked against the
+        column type. The entire request is validated before any rows are
+        modified.
 
         Args:
-            where: Condiciones de igualdad que deben cumplirse en una fila.
-            values: Columnas y valores que se asignarán a cada coincidencia.
+            where: Equality conditions that a row must satisfy.
+            values: Columns and values to assign to each matching row.
 
         Returns:
-            Cantidad de filas actualizadas; puede ser cero.
+            Number of updated rows; may be zero.
 
         Raises:
-            TypeError: Si un valor a asignar no coincide con su tipo.
-            ValueError: Si alguno de los argumentos es vacío/no es un
-                diccionario o se nombra una columna inexistente.
+            TypeError: If an assigned value does not match its column type.
+            ValueError: If either argument is empty or not a dictionary, or
+                if a non-existent column is named.
         """
 
         if not isinstance(where, dict) or not where:
@@ -169,19 +167,19 @@ class Rows:
 
 
     def clear(self) -> None:
-        """Elimina todas las filas sin modificar el esquema."""
+        """Remove all rows without changing the schema."""
         self._storage.clear()
 
     def get(self, *indices: int) -> list[dict[str, Any]]:
-        """Devuelve todas las filas o copias de las posiciones solicitadas.
+        """Return all rows or copies of the requested positions.
 
-        Sin argumentos, devuelve todas las filas. Los índices admiten valores
-        negativos como las listas de Python; se conserva el orden y se
-        permiten índices repetidos.
+        With no arguments, return all rows. Indexes support negative values as
+        Python lists do; the requested order is preserved and repeated
+        indexes are allowed.
 
         Raises:
-            TypeError: Si un índice no es un entero o es un booleano.
-            IndexError: Si alguno de los índices está fuera de rango.
+            TypeError: If an index is not an integer or is a boolean.
+            IndexError: If an index is out of range.
         """
 
         if not indices:
@@ -203,14 +201,14 @@ class Rows:
         return selected
 
     def get_one(self, index: int) -> dict[str, Any]:
-        """Devuelve una copia superficial de la fila en ``index``.
+        """Return a shallow copy of the row at ``index``.
 
-        Admite índices negativos. ``bool`` no se acepta como índice, aunque
-        sea una subclase de ``int`` en Python.
+        Negative indexes are supported. ``bool`` is not accepted as an index,
+        although it is a subclass of ``int`` in Python.
 
         Raises:
-            TypeError: Si el índice no es entero o es un booleano.
-            IndexError: Si el índice está fuera de rango.
+            TypeError: If the index is not an integer or is a boolean.
+            IndexError: If the index is out of range.
         """
 
         if isinstance(index, bool) or not isinstance(index, int):
@@ -224,17 +222,17 @@ class Rows:
             ) from None
 
     def get_all(self) -> list[dict[str, Any]]:
-        """Devuelve una lista nueva con una copia superficial de cada fila."""
+        """Return a new list containing a shallow copy of each row."""
         return [row.copy() for row in self._storage]
 
     def get_columns(self, *columns: str) -> dict[str, list[Any]]:
-        """Devuelve listas de valores para las columnas solicitadas.
+        """Return value lists for the requested columns.
 
-        Si no se indican nombres, incluye todas las columnas del esquema. El
-        diccionario y las listas son nuevos, pero los valores no se copian.
+        If no names are given, include every schema column. The dictionary and
+        lists are new, but their values are not copied.
 
         Raises:
-            ValueError: Si se solicita una columna inexistente.
+            ValueError: If a requested column does not exist.
         """
 
         schema = self._columns.get_all()
@@ -255,12 +253,12 @@ class Rows:
         return result
 
     def get_column(self, column: str) -> list[Any]:
-        """Devuelve una lista nueva con los valores de una columna.
+        """Return a new list containing the values of one column.
 
-        Los valores no se copian.
+        Values are not copied.
 
         Raises:
-            ValueError: Si la columna no existe.
+            ValueError: If the column does not exist.
         """
 
         if column not in self._columns:
@@ -271,13 +269,13 @@ class Rows:
         ]
 
     def __len__(self) -> int:
-        """Devuelve la cantidad actual de filas."""
+        """Return the current number of rows."""
         return len(self._storage)
 
     def __iter__(self):
-        """Itera sobre copias superficiales de las filas actuales."""
+        """Iterate over shallow copies of the current rows."""
         return iter(self.get_all())
 
     def __repr__(self) -> str:
-        """Devuelve una representación breve con el número de filas."""
+        """Return a short representation with the number of rows."""
         return f"Rows(count={len(self)})"

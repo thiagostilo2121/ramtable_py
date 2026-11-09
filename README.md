@@ -1,32 +1,64 @@
 # RAMTable
 
-RAMTable es una biblioteca pequeña y sin dependencias externas para crear y
-manipular tablas tipadas en memoria. Define un esquema de columnas, valida las
-filas en tiempo de ejecución y ofrece operaciones para insertar, consultar,
-actualizar y eliminar registros.
+RAMTable provides typed in-memory tables for data that only needs to live
+while a program is running. It gives records an explicit schema and common
+operations without requiring you to manage lists and dictionaries by hand or
+set up a persistent SQL database.
 
-> RAMTable mantiene los datos únicamente en memoria: no implementa persistencia
-> en disco ni consultas SQL.
+RAMTable is a lightweight Python library with no runtime dependencies. Data is
+kept in memory and is lost when the process ends. RAMTable is not a database,
+does not execute SQL, and does not write data to disk.
 
-## Requisitos
+## Why RAMTable?
 
-- Python 3.10 o posterior.
+RAMTable is useful when temporary data needs more structure than a plain list
+or dictionary, for example:
 
-## Instalación
+- intermediate results during a process;
+- temporary records during a calculation or import;
+- data used by a running task;
+- prototypes that need typed rows and columns without a persistent database.
 
-Desde una copia local del repositorio:
+For simple collections, a list or dictionary may still be the better choice.
+If data must survive process restarts, be shared between processes, queried
+with SQL, or managed with database guarantees, use an appropriate persistence
+solution instead.
+
+## Project status
+
+The current project version is **0.2.0**. RAMTable is available on
+[TestPyPI](https://test.pypi.org/project/ramtable/) for testing and has not yet
+been released on the official PyPI index. TestPyPI is a test environment and
+should not be confused with PyPI.
+
+RAMTable is at an early stage and will continue to evolve. See the
+[CHANGELOG](CHANGELOG.md) for release history and updates.
+
+## Requirements
+
+- Python 3.10 or later.
+
+## Installation
+
+Install the version available from TestPyPI:
+
+```bash
+python -m pip install --index-url https://test.pypi.org/simple/ ramtable
+```
+
+Install from a local checkout:
 
 ```bash
 python -m pip install .
 ```
 
-Para desarrollar en el repositorio y que los cambios se reflejen sin reinstalar:
+Install in editable mode for development:
 
 ```bash
 python -m pip install --editable .
 ```
 
-## Inicio rápido
+## Quick start
 
 ```python
 from ramtable import Table
@@ -37,114 +69,98 @@ people = Table(
         "id": int,
         "name": str,
         "age": int,
+        "email": str,
     },
 )
 
-people.rows.insert({"id": 1, "name": "Ada", "age": 36})
-people.rows.insert({"id": 2, "name": "Linus", "age": 28})
+# Every row must contain exactly the columns defined above.
+people.rows.insert(
+    {"id": 1, "name": "Ada", "age": 36, "email": "ada@example.com"}
+)
+people.rows.insert(
+    {"id": 2, "name": "Linus", "age": 28, "email": "linus@example.com"}
+)
 
 print(people.rows.get_column("name"))
 # ['Ada', 'Linus']
 
-updated = people.rows.update(
+# Update every row matching the conditions.
+updated_count = people.rows.update(
     where={"id": 1},
     values={"name": "Ada Lovelace"},
 )
-print(updated)
+print(updated_count)
 # 1
 
 print(people.rows.get_one(0))
-# {'id': 1, 'name': 'Ada Lovelace', 'age': 36}
+# {'id': 1, 'name': 'Ada Lovelace', 'age': 36, 'email': 'ada@example.com'}
 ```
 
-Cada fila debe ser un diccionario con exactamente los nombres de columna del
-esquema. `insert` valida la estructura y los tipos antes de almacenar una copia
-superficial del diccionario.
+`Table` shares its storage between `table.columns` and `table.rows`. Insert,
+query, and update records through `rows`; modify the schema through `columns`.
+See the [user guide](docs/guide.md) for a step-by-step explanation.
 
-## Tipos de columna
+## Main features
 
-Se aceptan clases de Python (por ejemplo, `int` y `str`), `Any`, `None`,
-`Annotated`, uniones (`str | None` o `Union[...]`), `Literal`, y las
-anotaciones parametrizadas de listas, conjuntos, diccionarios, secuencias,
-conjuntos abstractos y tuplas. También se aceptan `type[T]` y tuplas de tamaño
-fijo o variable. `TypeValidator` implementa y expone la validación de estas
-anotaciones en tiempo de ejecución.
+- **Explicit schema:** define column names and types when creating a table.
+- **Runtime validation:** rows must contain exactly the schema's columns and
+  their values must match the declared types.
+- **Record operations:** insert, retrieve, update, and remove rows.
+- **Schema operations:** add and remove columns or change their declared type,
+  while accounting for existing records.
+- **No implicit persistence:** no server, SQL setup, or runtime dependencies
+  are required.
 
-La comprobación de clases simples usa `isinstance`; por ello, `bool` también
-se considera compatible con `int`, siguiendo el comportamiento de Python. Las
-anotaciones `Literal` comparan tanto el valor como su tipo exacto.
+## Supported types
 
-## Operaciones
+RAMTable supports Python classes and common annotations, including `Any`,
+`None`, `Annotated`, unions (`str | None`), `Literal`, parameterized lists,
+sets, dictionaries, sequences, mappings, and tuples. `type[T]` annotations are
+also supported. Parameterized containers are checked recursively.
 
-### Tabla
+```python
+from typing import Literal
+from ramtable import Table
 
-- `Table(name, columns)`: crea una tabla con nombre no vacío y al menos una
-  columna.
-- `table.clear()`: elimina todas las filas y conserva el esquema.
-- `len(table)`: devuelve la cantidad de filas.
+events = Table(
+    "events",
+    {
+        "name": str,
+        "status": Literal["pending", "complete"],
+        "tags": list[str],
+    },
+)
+```
 
-El esquema y las filas se gestionan mediante `table.columns` y `table.rows`.
+Simple class checks use `isinstance`; following Python semantics, a `bool`
+value also matches `int`. `Literal` is stricter and checks both value and
+exact type. See [types and validation](docs/types-and-validation.md) for
+details and limitations.
 
-### Columnas (`table.columns`)
+## Copies and lifecycle
 
-- `add(name, column_type, default=...)`: agrega una columna. Si ya hay filas,
-  exige un valor predeterminado compatible y crea una copia profunda del
-  predeterminado para cada fila. No se puede agregar un nombre duplicado.
-- `remove(name)`: elimina la columna y su valor de todas las filas. No permite
-  eliminar la última columna.
-- `update(name, new_type)`: cambia la anotación si todos los valores existentes
-  son compatibles; no convierte los datos.
-- `get(name)`: devuelve el tipo de una columna.
-- `get_all()`: devuelve una copia del diccionario del esquema.
-- `name in table.columns` y `len(table.columns)`: consultan pertenencia y
-  cantidad de columnas.
+Rows are stored as dictionaries. Inserting a row makes a shallow copy of the
+dictionary. Row retrieval also returns new dictionaries, but does not copy
+their values. Mutable objects used as cell values may therefore remain shared
+with the code that supplied or retrieved them.
 
-### Filas (`table.rows`)
+`table.clear()` removes all records and preserves the schema. No operation
+writes data to disk; records disappear when the process ends.
 
-- `insert(row)`: valida e inserta una fila.
-- `remove(row)`: valida y elimina la primera fila igual a la indicada.
-- `update(where, values)`: actualiza todos los registros que coinciden con las
-  condiciones de igualdad y devuelve la cantidad modificada. Los valores que
-  se asignan se validan contra el esquema; los valores de condición no.
-- `get()`: devuelve todas las filas; `get(index, ...)` devuelve las filas en
-  los índices solicitados.
-- `get_one(index)`: devuelve una fila por índice.
-- `get_all()`: devuelve todas las filas.
-- `get_columns(*names)`: devuelve las columnas seleccionadas como listas; sin
-  argumentos, incluye todas las columnas.
-- `get_column(name)`: devuelve los valores de una columna.
-- `clear()`: elimina todas las filas.
-- `len(table.rows)` e iterar `table.rows`: consultan la cantidad e iteran sobre
-  las filas.
+## Documentation
 
-Los índices aceptan valores negativos como las listas de Python, pero no
-aceptan `bool`.
+- [User guide](docs/guide.md): lifecycle, CRUD examples, schema, queries,
+  errors, and library limitations.
+- [Complete API reference](docs/api.md): classes, methods, arguments, return
+  values, and exceptions.
+- [Types and validation](docs/types-and-validation.md): supported annotations
+  and runtime checking rules.
+- [Development and releases](docs/development.md): project layout, checks, and
+  preparing a release.
+- [CHANGELOG](CHANGELOG.md): changes by version.
+- [License](LICENSE): MIT.
 
-## Copias y mutabilidad
+## License
 
-Las operaciones que devuelven filas crean nuevos diccionarios, pero las copias
-son superficiales. Las listas y los diccionarios devueltos para columnas
-también son nuevos, aunque sus valores no se copian. Por lo tanto, si una celda
-contiene un objeto mutable, ese objeto puede seguir compartido entre la tabla y
-el código que lo obtuvo.
-
-## Errores
-
-RAMTable informa los usos inválidos mediante excepciones estándar:
-
-- `ValueError` para nombres, columnas o estructuras inexistentes/no válidos.
-- `TypeError` para tipos de anotación, filas o valores incompatibles.
-- `IndexError` para índices de fila fuera de rango.
-
-## API pública
-
-El paquete exporta `Table`, `Columns` y `Rows` desde `ramtable`. La clase
-`TypeValidator` está disponible en `ramtable.types` para inspeccionar el
-soporte de anotaciones y comprobar valores. La descripción completa de cada
-método y sus excepciones está en los docstrings del código fuente.
-
-## Licencia
-
-Este proyecto se distribuye bajo la licencia MIT. Consulta [LICENSE](LICENSE).
-# ramtable_py
-# ramtable_py
+RAMTable is distributed under the MIT License. See [LICENSE](LICENSE) for
+the terms.

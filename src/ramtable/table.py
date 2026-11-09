@@ -1,5 +1,5 @@
 
-"""Contenedor principal que coordina el esquema y las filas."""
+"""Main container coordinating a table's schema and rows."""
 
 from typing import Any
 
@@ -8,10 +8,10 @@ from .rows import Rows
 
 
 class Table:
-    """Representa una tabla en memoria con esquema tipado y filas.
+    """Represent an in-memory table with a typed schema and rows.
 
-    La tabla no persiste datos en disco. Sus atributos ``columns`` y ``rows``
-    ofrecen las operaciones sobre el esquema y los registros respectivamente.
+    The table does not persist data to disk. Its ``columns`` and ``rows``
+    attributes provide operations on the schema and records, respectively.
     """
 
     def __init__(
@@ -19,16 +19,16 @@ class Table:
         name: str,
         columns: dict[str, Any],
     ) -> None:
-        """Crea una tabla con nombre no vacío y un esquema no vacío.
+        """Create a table with a non-empty name and schema.
 
         Args:
-            name: Nombre descriptivo de la tabla.
-            columns: Diccionario de nombres de columna y anotaciones válidas.
+            name: Descriptive table name.
+            columns: Dictionary of column names and supported annotations.
 
         Raises:
-            ValueError: Si el nombre no es una cadena no vacía, o el esquema
-                no contiene columnas o tiene nombres inválidos.
-            TypeError: Si alguna anotación de columna no es compatible.
+            ValueError: If the name is not a non-empty string, the schema is
+                empty, or a column name is invalid.
+            TypeError: If a column annotation is unsupported.
         """
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Table name must be a non-empty string.")
@@ -42,15 +42,15 @@ class Table:
         self.rows = Rows(self.columns, storage)
 
     def clear(self) -> None:
-        """Elimina todos los registros y conserva el esquema de columnas."""
+        """Remove all records while preserving the column schema."""
         self.rows.clear()
 
     def __len__(self) -> int:
-        """Devuelve la cantidad actual de filas."""
+        """Return the current number of rows."""
         return len(self.rows)
 
     def __repr__(self) -> str:
-        """Devuelve una representación con nombre, columnas y cantidad."""
+        """Return a representation with the name, columns, and row count."""
         return (
             f"Table(name={self.name!r}, "
             f"columns={list(self.columns.get_all())!r}, "
