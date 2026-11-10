@@ -199,7 +199,7 @@ writes to disk: records disappear when the process ends.
 
 ## Project status
 
-The current development version is **0.3.1.dev1**. RAMTable is published as
+The current development version is **0.3.1rc0**. RAMTable is published as
 `ramtable` on both [PyPI](https://pypi.org/project/ramtable/) and
 [TestPyPI](https://test.pypi.org/project/ramtable/). Use PyPI for stable
 releases and TestPyPI to try release candidates and other pre-releases.
