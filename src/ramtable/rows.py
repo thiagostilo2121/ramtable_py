@@ -1,10 +1,24 @@
 
-"""Row insertion, retrieval, update, and removal operations."""
+"""Row insertion, retrieval, filtering, update, and removal operations."""
 
-from typing import Any
+from typing import Any, Callable
 
 from .columns import Columns
 from .types import TypeValidator
+
+_FILTER_OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
+    "==": lambda value, operand: value == operand,
+    "!=": lambda value, operand: value != operand,
+    ">": lambda value, operand: value > operand,
+    ">=": lambda value, operand: value >= operand,
+    "<": lambda value, operand: value < operand,
+    "<=": lambda value, operand: value <= operand,
+    "in": lambda value, operand: value in operand,
+    "not_in": lambda value, operand: value not in operand,
+    "contains": lambda value, operand: operand in value,
+    "startswith": lambda value, operand: value.startswith(operand),
+    "endswith": lambda value, operand: value.endswith(operand),
+}
 
 
 class Rows:
@@ -65,6 +79,76 @@ class Rows:
                     f"received {type(row[column]).__name__}."
                 )
 
+    def _filter(self, where: dict[str, Any]) -> list[dict[str, Any]]:
+        """Return the stored rows that satisfy every condition in ``where``.
+
+        This is the shared engine behind :meth:`filter`, :meth:`delete`, and
+        :meth:`update`. Each key is a column name and each condition is one
+        of:
+
+        * a plain value, matched with ``==``;
+        * a dictionary of operators whose operands must all match;
+        * a callable that receives the cell value and returns a truthy
+          result when the row matches.
+
+        Supported operators are ``==``, ``!=``, ``>``, ``>=``, ``<``,
+        ``<=``, ``in``, ``not_in``, ``contains``, ``startswith``, and
+        ``endswith``. All conditions are combined with ``and``.
+
+        Returned rows are internal references; callers copy them before
+        exposing them outside the class.
+
+        Raises:
+            ValueError: If ``where`` is not a non-empty dictionary, names a
+                column that does not exist, or uses an unknown operator.
+        """
+
+        if not isinstance(where, dict) or not where:
+            raise ValueError(
+                "Filter conditions must be a non-empty dictionary."
+            )
+
+        schema = self._columns.get_all()
+
+        for column, condition in where.items():
+            if column not in schema:
+                raise ValueError(f"Column '{column}' does not exist.")
+
+            if isinstance(condition, dict):
+                if not condition:
+                    raise ValueError(
+                        f"Filter for column '{column}' must not be empty."
+                    )
+
+                for operator in condition:
+                    if operator not in _FILTER_OPERATORS:
+                        raise ValueError(
+                            f"Unknown filter operator {operator!r}. "
+                            "Supported operators: "
+                            f"{', '.join(_FILTER_OPERATORS)}."
+                        )
+
+        def matches(value: Any, condition: Any) -> bool:
+            if isinstance(condition, dict):
+                return all(
+                    _FILTER_OPERATORS[operator](value, operand)
+                    for operator, operand in condition.items()
+                )
+
+            if callable(condition) and not isinstance(condition, type):
+                return bool(condition(value))
+
+            return value == condition
+
+        return [
+            row
+            for row in self._storage
+            if all(
+                matches(row[column], condition)
+                for column, condition in where.items()
+            )
+        ]
+
     def insert(self, row: dict[str, Any]) -> None:
         """Validate and append a shallow copy of ``row``.
 
@@ -93,6 +177,33 @@ class Rows:
                 "Row does not exist in this table."
             ) from None
 
+    def delete(self, where: dict[str, Any]) -> int:
+        """Delete every row that matches ``where``.
+
+        Conditions use the same format as :meth:`filter` and :meth:`update`.
+        To remove one specific row by its full content, use :meth:`remove`.
+
+        Args:
+            where: Non-empty dictionary mapping column names to conditions.
+
+        Returns:
+            Number of deleted rows; may be zero.
+
+        Raises:
+            ValueError: If ``where`` is not a non-empty dictionary, names a
+                column that does not exist, or uses an unknown operator.
+        """
+
+        matches = self._filter(where)
+
+        if matches:
+            matched = {id(row) for row in matches}
+            self._storage[:] = [
+                row for row in self._storage
+                if id(row) not in matched
+            ]
+
+        return len(matches)
 
     def update(
         self,
@@ -102,13 +213,13 @@ class Rows:
         """Update fields in every row that satisfies ``where``.
 
         Both ``where`` and ``values`` must be non-empty dictionaries containing
-        existing column names. New values are validated against the schema;
-        conditions use equality and their values are not checked against the
-        column type. The entire request is validated before any rows are
-        modified.
+        existing column names. Conditions use the same flexible format as
+        :meth:`filter`; new values are validated against the schema, but
+        condition values are not. The entire request is validated before any
+        rows are modified.
 
         Args:
-            where: Equality conditions that a row must satisfy.
+            where: Conditions that a row must satisfy (see :meth:`filter`).
             values: Columns and values to assign to each matching row.
 
         Returns:
@@ -117,13 +228,8 @@ class Rows:
         Raises:
             TypeError: If an assigned value does not match its column type.
             ValueError: If either argument is empty or not a dictionary, or
-                if a non-existent column is named.
+                if a non-existent column or filter operator is named.
         """
-
-        if not isinstance(where, dict) or not where:
-            raise ValueError(
-                "Update conditions must be a non-empty dictionary."
-            )
 
         if not isinstance(values, dict) or not values:
             raise ValueError(
@@ -131,13 +237,6 @@ class Rows:
             )
 
         schema = self._columns.get_all()
-
-        # Validate condition columns.
-        for column in where:
-            if column not in schema:
-                raise ValueError(
-                    f"Column '{column}' does not exist."
-                )
 
         # Validate update columns and their values.
         for column, value in values.items():
@@ -153,11 +252,9 @@ class Rows:
                     f"received {type(value).__name__}."
                 )
 
-        # Find matching rows before modifying anything.
-        matching_rows = [
-            row for row in self._storage
-            if all(row[column] == value for column, value in where.items())
-        ]
+        # Find matching rows before modifying anything. ``_filter`` validates
+        # the conditions and returns references to stored rows.
+        matching_rows = self._filter(where)
 
         # Apply changes.
         for row in matching_rows:
@@ -165,6 +262,25 @@ class Rows:
 
         return len(matching_rows)
 
+    def filter(self, where: dict[str, Any]) -> list[dict[str, Any]]:
+        """Return shallow copies of the rows that match ``where``.
+
+        Conditions use the same format as :meth:`update` and :meth:`delete`;
+        see :meth:`_filter` for the supported operators and callables. Rows
+        are returned in storage order.
+
+        Args:
+            where: Non-empty dictionary mapping column names to conditions.
+
+        Returns:
+            New list of shallow row copies; empty when nothing matches.
+
+        Raises:
+            ValueError: If ``where`` is not a non-empty dictionary, names a
+                column that does not exist, or uses an unknown operator.
+        """
+
+        return [row.copy() for row in self._filter(where)]
 
     def clear(self) -> None:
         """Remove all rows without changing the schema."""
