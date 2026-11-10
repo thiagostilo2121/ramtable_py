@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-[![PyPI](https://img.shields.io/badge/PyPI-ramtable-blue)](https://pypi.org/project/ramtable/)
+[![PyPI](https://img.shields.io/pypi/v/ramtable)](https://pypi.org/project/ramtable/)
 [![TestPyPI](https://img.shields.io/badge/TestPyPI-ramtable-orange)](https://test.pypi.org/project/ramtable/)
 
 RAMTable provides typed in-memory tables for data that only needs to live
@@ -199,10 +199,12 @@ writes to disk: records disappear when the process ends.
 
 ## Project status
 
-The current development version is **0.3.2dev0**. RAMTable is published as
-`ramtable` on both [PyPI](https://pypi.org/project/ramtable/) and
+RAMTable is published as `ramtable` on
+[PyPI](https://pypi.org/project/ramtable/) and
 [TestPyPI](https://test.pypi.org/project/ramtable/). Use PyPI for stable
-releases and TestPyPI to try release candidates and other pre-releases.
+releases and TestPyPI to try release candidates and other pre-releases. The
+PyPI badge above shows the latest published version; the
+[CHANGELOG](CHANGELOG.md) records the full release history.
 
 The project is at an early stage and will continue to evolve. See the
 [CHANGELOG](CHANGELOG.md) for release history.

@@ -101,15 +101,24 @@ the branch:
 - `MINOR` for compatible functionality;
 - `MAJOR` for breaking API or behavior changes.
 
+`pyproject.toml` is the single source of truth for the current version. The
+build backend reads it, the GitHub Actions workflows read it, and the
+installed package exposes it as `ramtable.__version__` through its
+distribution metadata. The README uses a dynamic PyPI badge instead of a
+hardcoded number. `CHANGELOG.md` is the only other file with version
+numbers, because it is a historical record of releases.
+
 Development versions are never published. TestPyPI accepts release
 candidates and stable versions, so the final stable release can be tested
 there before it reaches PyPI. PyPI accepts stable versions only.
 
 ## Preparing a release
 
-1. On `dev`, update `project.version` in `pyproject.toml` and add the
-   corresponding section to `CHANGELOG.md`.
-2. Check that the README and documentation describe current behavior.
+1. On `dev`, update `project.version` in `pyproject.toml`. This is the only
+   place where the current version is defined. Add the corresponding
+   section to `CHANGELOG.md`.
+2. Check that the README and documentation describe current behavior. The
+   README must not contain a hardcoded version.
 3. Run the example and all available build/test checks.
 4. Build and inspect the wheel and source distribution.
 5. Open a pull request from `dev` to `test_pypi`. The pull request validates
