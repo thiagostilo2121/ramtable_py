@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.3.2rc0]
+## [0.3.2]
 
 Raises the minimum supported Python version, expands the tested versions,
 and centralizes the package version.
