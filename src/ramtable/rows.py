@@ -286,7 +286,7 @@ class Rows:
         """Remove all rows without changing the schema."""
         self._storage.clear()
 
-    def get(self, *indices: int) -> list[dict[str, Any]]:
+    def get(self, *indixes: int) -> list[dict[str, Any]]:
         """Return all rows or copies of the requested positions.
 
         With no arguments, return all rows. Indexes support negative values as
@@ -298,12 +298,12 @@ class Rows:
             IndexError: If an index is out of range.
         """
 
-        if not indices:
+        if not indixes:
             return self.get_all()
 
         selected = []
 
-        for index in indices:
+        for index in indixes:
             if isinstance(index, bool) or not isinstance(index, int):
                 raise TypeError("Row indices must be integers.")
 
