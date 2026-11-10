@@ -1,0 +1,124 @@
+name: Publish to PyPI
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-pypi-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate and build
+    # Build on every PR activity, and also on a merged close so the artifact
+    # exists for the publish job. A closed, unmerged PR is skipped.
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install build tools and package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine packaging
+          python -m pip install .
+
+      # The repository does not ship an automated test suite yet. These
+      # checks verify that the package compiles and is importable. Replace
+      # them with the project's test command once tests are added.
+      - name: Run checks
+        run: |
+          python -m compileall -q src/ramtable
+          python -c "from ramtable import Columns, Rows, Table"
+
+      - name: Validate version for PyPI
+        run: |
+          python - <<'PY'
+          import pathlib
+          import tomllib
+
+          from packaging.version import InvalidVersion, Version
+
+          version = tomllib.loads(
+              pathlib.Path("pyproject.toml").read_text(encoding="utf-8")
+          )["project"]["version"]
+
+          try:
+              parsed = Version(version)
+          except InvalidVersion:
+              raise SystemExit(
+                  f"::error::'{version}' is not a valid PEP 440 version."
+              )
+
+          # PyPI accepts stable releases (X.Y.Z) only. Pre-releases,
+          # development releases, post releases, and local versions are
+          # rejected.
+          allowed = (
+              not parsed.is_prerelease
+              and not parsed.is_devrelease
+              and not parsed.is_postrelease
+              and parsed.local is None
+          )
+
+          if not allowed:
+              raise SystemExit(
+                  "::error::PyPI accepts stable versions (X.Y.Z) only; "
+                  f"got '{version}'."
+              )
+
+          print(f"Version '{version}' is valid for PyPI.")
+          PY
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Validate distributions
+        run: python -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-dists
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish to PyPI
+    needs:
+      - validate
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download built distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-dists
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

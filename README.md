@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![PyPI](https://img.shields.io/badge/PyPI-ramtable-blue)](https://pypi.org/project/ramtable/)
 [![TestPyPI](https://img.shields.io/badge/TestPyPI-ramtable-orange)](https://test.pypi.org/project/ramtable/)
 
 RAMTable provides typed in-memory tables for data that only needs to live
@@ -44,11 +45,20 @@ temporary storage, not analytics.
 
 RAMTable requires Python 3.10 or later.
 
-Install the version available from TestPyPI:
+Install the latest stable release from PyPI:
 
 ```bash
-python -m pip install --index-url https://test.pypi.org/simple/ ramtable
+python -m pip install ramtable
 ```
+
+Pre-releases are published to TestPyPI. To try one:
+
+```bash
+python -m pip install --pre --index-url https://test.pypi.org/simple/ ramtable
+```
+
+TestPyPI is a separate testing index, not the official package index. Stable
+releases are published to PyPI under the name `ramtable`.
 
 Install from a local checkout:
 
@@ -189,10 +199,10 @@ writes to disk: records disappear when the process ends.
 
 ## Project status
 
-The current version is **0.3.0**. RAMTable is available on
-[TestPyPI](https://test.pypi.org/project/ramtable/) for testing and has not
-yet been released on the official PyPI index. TestPyPI is a test environment
-and should not be confused with PyPI.
+The current development version is **0.3.1rc0**. RAMTable is published as
+`ramtable` on both [PyPI](https://pypi.org/project/ramtable/) and
+[TestPyPI](https://test.pypi.org/project/ramtable/). Use PyPI for stable
+releases and TestPyPI to try release candidates and other pre-releases.
 
 The project is at an early stage and will continue to evolve. See the
 [CHANGELOG](CHANGELOG.md) for release history.

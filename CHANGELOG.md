@@ -3,7 +3,25 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.3.0] - In preparation
+## [0.3.1]
+
+Publishes RAMTable to the official PyPI index alongside TestPyPI.
+
+### Added
+
+- Stable releases are now published to PyPI under the name `ramtable`.
+- Branch-based release flow (`dev` → `test_pypi` → `main`) with PEP 440
+  version validation in GitHub Actions.
+- Trusted Publishing with OIDC for both PyPI and TestPyPI; no API tokens are
+  stored in the repository.
+
+### Changed
+
+- Installation documentation covers stable releases from PyPI and
+  pre-releases from TestPyPI.
+- `pyproject.toml` reports version `0.3.1rc0`.
+
+## [0.3.0]
 
 Adds declarative filtering and shares one condition engine across filtering,
 updating, and deleting rows.
