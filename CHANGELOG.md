@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.3.3dev1]
+## [0.3.3rc0]
 
 Adds contribution guidelines for the project.
 
