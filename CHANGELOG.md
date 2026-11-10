@@ -3,6 +3,16 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.3.2dev0]
+
+Raises the minimum supported Python version and expands the tested
+versions.
+
+### Changed
+
+- Python 3.11 or later is now required; support for Python 3.10 was removed.
+- Added Python 3.14 and 3.15 to the test matrix and package classifiers.
+
 ## [0.3.1]
 
 Publishes RAMTable to the official PyPI index alongside TestPyPI.
@@ -19,7 +29,6 @@ Publishes RAMTable to the official PyPI index alongside TestPyPI.
 
 - Installation documentation covers stable releases from PyPI and
   pre-releases from TestPyPI.
-- `pyproject.toml` reports version `0.3.1rc0`.
 
 ## [0.3.0]
 

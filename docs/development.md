@@ -47,7 +47,7 @@ how to prepare a release. It does not change or extend the RAMTable API.
 
 ## Set up a local environment
 
-Python 3.10 or later is required. Install the project in editable mode:
+Python 3.11 or later is required. Install the project in editable mode:
 
 ```bash
 python -m pip install --editable .
@@ -91,7 +91,7 @@ the branch:
 
 | Branch | Version form | Example | Published to |
 |---|---|---|---|
-| `dev` | `X.Y.Z.devN` | `0.3.1.dev1` | nothing |
+| `dev` | `X.Y.Z.devN` | `0.3.2.dev0` | nothing |
 | `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.3.1rc0`, `0.3.1` | TestPyPI |
 | `main` | `X.Y.Z` | `0.3.1` | PyPI |
 

@@ -1,6 +1,6 @@
 # RAMTable
 
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![PyPI](https://img.shields.io/badge/PyPI-ramtable-blue)](https://pypi.org/project/ramtable/)
 [![TestPyPI](https://img.shields.io/badge/TestPyPI-ramtable-orange)](https://test.pypi.org/project/ramtable/)
@@ -43,7 +43,7 @@ temporary storage, not analytics.
 
 ## Installation
 
-RAMTable requires Python 3.10 or later.
+RAMTable requires Python 3.11 or later.
 
 Install the latest stable release from PyPI:
 
@@ -199,7 +199,7 @@ writes to disk: records disappear when the process ends.
 
 ## Project status
 
-The current development version is **0.3.1rc0**. RAMTable is published as
+The current development version is **0.3.2dev0**. RAMTable is published as
 `ramtable` on both [PyPI](https://pypi.org/project/ramtable/) and
 [TestPyPI](https://test.pypi.org/project/ramtable/). Use PyPI for stable
 releases and TestPyPI to try release candidates and other pre-releases.
