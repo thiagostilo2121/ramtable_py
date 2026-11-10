@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ramtable"
-version = "0.3.2dev0"
+version = "0.3.2dev1"
 description = "A lightweight in-memory table library for Python."
 readme = "README.md"
 requires-python = ">=3.11"
