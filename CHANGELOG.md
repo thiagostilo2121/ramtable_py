@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.3.3dev0]
+## [0.3.3dev1]
 
 Adds contribution guidelines for the project.
 
@@ -12,6 +12,10 @@ Adds contribution guidelines for the project.
 - `CONTRIBUTING.md` covering contribution scope, the prior-approval policy
   for new features, single-maintainer review expectations, branch naming,
   development setup, testing expectations, and pull request guidelines.
+
+### Changed
+
+- `rows.py` changed `indices` to `indixes` in `get()` methods.
 
 ## [0.3.2]
 
