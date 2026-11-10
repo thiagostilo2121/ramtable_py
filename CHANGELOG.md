@@ -3,6 +3,16 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.3.3dev0]
+
+Adds contribution guidelines for the project.
+
+### Added
+
+- `CONTRIBUTING.md` covering contribution scope, the prior-approval policy
+  for new features, single-maintainer review expectations, branch naming,
+  development setup, testing expectations, and pull request guidelines.
+
 ## [0.3.2]
 
 Raises the minimum supported Python version, expands the tested versions,
