@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![PyPI](https://img.shields.io/pypi/v/ramtable)](https://pypi.org/project/ramtable/)
-[![TestPyPI](https://img.shields.io/badge/TestPyPI-ramtable-orange)](https://test.pypi.org/project/ramtable/)
+[![TestPyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftest.pypi.org%2Fpypi%2Framtable%2Fjson&label=TestPyPI&query=%24.info.version&color=blue)](https://test.pypi.org/project/ramtable/)
 
 RAMTable provides typed in-memory tables for data that only needs to live
 while a program is running. It gives records an explicit schema and common
