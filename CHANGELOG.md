@@ -3,7 +3,30 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.2.0] - In preparation
+## [0.3.0] - In preparation
+
+Adds declarative filtering and shares one condition engine across filtering,
+updating, and deleting rows.
+
+### Added
+
+- `Rows.filter(where)` returns the rows that match a set of conditions.
+- `Rows.delete(where)` removes every matching row and returns the number
+  deleted.
+- Flexible conditions in `where`: comparison operators (`==`, `!=`, `>`,
+  `>=`, `<`, `<=`), membership (`in`, `not_in`), string and container
+  matching (`contains`, `startswith`, `endswith`), and callable predicates.
+- Documentation for filtering, deletion, and the shared condition format.
+
+### Changed
+
+- `Rows.update(where, values)` now accepts the same flexible conditions;
+  plain values still mean equality.
+- A dictionary in `where` is now interpreted as an operator specification;
+  to compare a column against a dictionary value, use `{"==": value}`.
+- `pyproject.toml` and the README now report version `0.3.0`.
+
+## [0.2.0]
 
 This version prepares complete project documentation and a more useful
 onboarding experience for users installing RAMTable from TestPyPI.
