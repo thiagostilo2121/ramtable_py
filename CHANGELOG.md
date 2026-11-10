@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.3.3rc0]
+## [0.3.3rc1]
 
 Adds contribution guidelines for the project.
 
@@ -15,7 +15,7 @@ Adds contribution guidelines for the project.
 
 ### Changed
 
-- `rows.py` changed `indices` to `indixes` in `get()` methods.
+- `rows.py` changed `indices` to `indexes` in `get()` methods.
 
 ## [0.3.2]
 
