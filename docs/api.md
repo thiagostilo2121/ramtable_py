@@ -180,6 +180,36 @@ Rows(columns: Columns, storage: list[dict[str, Any]])
 
 This constructor is primarily used internally by `Table`.
 
+### Filter conditions
+
+`filter()`, `delete()`, and `update()` share one condition format. A
+condition dictionary maps existing column names to one of:
+
+- a plain value, compared with `==`;
+- a dictionary of operators, all of which must match;
+- a callable that receives the cell value and returns a truthy result.
+
+| Operator | Meaning |
+|---|---|
+| `==` | equal to the operand |
+| `!=` | different from the operand |
+| `>`, `>=`, `<`, `<=` | ordered comparison |
+| `in` | value is contained in the operand |
+| `not_in` | value is not contained in the operand |
+| `contains` | operand is contained in the value |
+| `startswith` | string value starts with the operand |
+| `endswith` | string value ends with the operand |
+
+All entries are combined with AND. Condition values are not validated
+against the declared column types; comparisons follow Python semantics and
+may raise `TypeError` for incompatible operands. A dictionary condition is
+always treated as an operator specification, so compare a column against a
+dictionary value with `{"==": value}`.
+
+**Raises** for any condition dictionary: `ValueError` if it is not a
+non-empty dictionary, names a column that does not exist, or uses an
+unknown operator.
+
 ### `Rows.insert(row) -> None`
 
 Validate and append a shallow copy of `row`.
@@ -211,14 +241,34 @@ equality.
 - `TypeError`: the row object or a value is incompatible.
 - `ValueError`: the structure is invalid, or no equal row exists.
 
-### `Rows.update(where, values) -> int`
+### `Rows.delete(where) -> int`
 
-Update every row that matches all equality conditions.
+Delete every row that matches `where` (see
+[filter conditions](#filter-conditions)). To remove one specific row by its
+full content, use `remove` instead.
 
 **Arguments**
 
-- `where`: non-empty dictionary mapping existing column names to comparison
-  values. These values are not checked against the column types.
+- `where`: non-empty dictionary mapping column names to conditions.
+
+**Returns**
+
+- Number of deleted rows, possibly zero.
+
+**Raises**
+
+- `ValueError`: `where` is not a non-empty dictionary, names a non-existent
+  column, or uses an unknown operator.
+
+### `Rows.update(where, values) -> int`
+
+Update every row that matches all conditions in `where` (see
+[filter conditions](#filter-conditions)). Plain values still mean equality.
+
+**Arguments**
+
+- `where`: non-empty dictionary mapping existing column names to
+  conditions. Condition values are not checked against the column types.
 - `values`: non-empty dictionary mapping existing column names to new
   values. Each value is checked against its declared type.
 
@@ -229,11 +279,29 @@ Update every row that matches all equality conditions.
 **Raises**
 
 - `ValueError`: either argument is empty or is not a dictionary, or a
-  non-existent column is named.
+  non-existent column or filter operator is named.
 - `TypeError`: a new value does not match its column type.
 
 Arguments are validated and matches are determined before any changes are
-applied. Conditions use `==`; their types are not compared strictly.
+applied. Conditions are not compared type-strictly.
+
+### `Rows.filter(where) -> list[dict[str, Any]]`
+
+Return shallow copies of the rows that match `where` (see
+[filter conditions](#filter-conditions)), in storage order.
+
+**Arguments**
+
+- `where`: non-empty dictionary mapping column names to conditions.
+
+**Returns**
+
+- New list of shallow row copies; empty when nothing matches.
+
+**Raises**
+
+- `ValueError`: `where` is not a non-empty dictionary, names a non-existent
+  column, or uses an unknown operator.
 
 ### `Rows.clear() -> None`
 
@@ -361,6 +429,9 @@ API:
 - `Rows._validate(row)`: checks the object type, the exact set of columns,
   and each value; raises `TypeError` or `ValueError` depending on the
   failure.
+- `Rows._filter(where)`: validates a condition dictionary and returns the
+  stored rows that match it. Shared by `filter`, `delete`, and `update`;
+  returned rows are internal references, not copies.
 
 ## Copying behavior
 

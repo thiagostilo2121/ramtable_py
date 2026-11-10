@@ -98,6 +98,11 @@ print(updated)
 
 print(people.rows.get_one(0))
 # {'id': 1, 'name': 'Ada Lovelace', 'age': 36, 'email': 'ada@example.com'}
+
+# Conditions go beyond equality in filter(), update(), and delete().
+older = people.rows.filter({"age": {">": 30}})
+print([row["name"] for row in older])
+# ['Ada Lovelace']
 ```
 
 A `Table` exposes two views over the same storage:
@@ -113,8 +118,9 @@ The [user guide](docs/guide.md) walks through every operation step by step.
   created.
 - **Runtime validation:** every row must contain exactly the schema's
   columns, and each value must match its declared type.
-- **Row operations:** insert, retrieve, update by condition, and remove
-  rows.
+- **Row operations:** insert, retrieve, update, filter, and delete rows.
+- **Flexible conditions:** one condition format powers `filter`, `update`,
+  and `delete`, with comparison, membership, and string operators.
 - **Schema evolution:** add, remove, or retype columns while accounting for
   existing rows.
 - **Validate-then-write:** update requests are checked in full before any
@@ -174,7 +180,7 @@ writes to disk: records disappear when the process ends.
 
 | Document | Contents |
 |---|---|
-| [User guide](docs/guide.md) | Tables, rows, schema changes, queries, errors, and limits. |
+| [User guide](docs/guide.md) | Tables, rows, filtering, schema changes, errors, and limits. |
 | [API reference](docs/api.md) | Every class and method, with arguments, returns, and exceptions. |
 | [Types and validation](docs/types-and-validation.md) | Supported annotations and runtime checking rules. |
 | [Development and releases](docs/development.md) | Project layout, checks, and the release process. |
@@ -183,7 +189,7 @@ writes to disk: records disappear when the process ends.
 
 ## Project status
 
-The current version is **0.2.0**. RAMTable is available on
+The current version is **0.3.0**. RAMTable is available on
 [TestPyPI](https://test.pypi.org/project/ramtable/) for testing and has not
 yet been released on the official PyPI index. TestPyPI is a test environment
 and should not be confused with PyPI.

@@ -1,7 +1,8 @@
 # User guide
 
 This guide explains how to model temporary data with RAMTable: creating
-tables, working with rows, evolving the schema, and reading data back out.
+tables, working with rows, filtering, evolving the schema, and reading
+data back out.
 
 The snippets build on one example: an `inventory` table created in
 section 1 and populated in section 2. Each later section stands alone
@@ -13,13 +14,14 @@ each method, see the [API reference](api.md).
 1. [Create a table](#1-create-a-table)
 2. [Insert rows](#2-insert-rows)
 3. [Read rows and columns](#3-read-rows-and-columns)
-4. [Update rows](#4-update-rows)
-5. [Remove rows and clear data](#5-remove-rows-and-clear-data)
-6. [Change the schema](#6-change-the-schema)
-7. [Inspect the schema](#7-inspect-the-schema)
-8. [Copies and mutable values](#8-copies-and-mutable-values)
-9. [Errors reference](#9-errors-reference)
-10. [Scope and limitations](#10-scope-and-limitations)
+4. [Filter rows](#4-filter-rows)
+5. [Update rows](#5-update-rows)
+6. [Remove and delete rows](#6-remove-and-delete-rows)
+7. [Change the schema](#7-change-the-schema)
+8. [Inspect the schema](#8-inspect-the-schema)
+9. [Copies and mutable values](#9-copies-and-mutable-values)
+10. [Errors reference](#10-errors-reference)
+11. [Scope and limitations](#11-scope-and-limitations)
 
 ## 1. Create a table
 
@@ -50,7 +52,7 @@ Every table exposes two views over one shared storage:
 ```text
 inventory
 ├── columns → Columns   the schema: column names and declared types
-└── rows    → Rows      the data: insert, read, update, remove
+└── rows    → Rows      the data: insert, read, filter, update, remove
 ```
 
 Because both views share the same storage, schema changes are applied to
@@ -140,10 +142,68 @@ for row in inventory.rows:
 Iteration yields shallow copies of the rows, not views of the stored
 dictionaries.
 
-## 4. Update rows
+## 4. Filter rows
+
+`filter(where)` returns copies of the rows that satisfy every condition in
+`where`. A plain value means equality:
+
+```python
+in_stock = inventory.rows.filter({"active": True})
+# [{'code': 'A-10', ...}]
+```
+
+For anything beyond equality, map the column to a dictionary of operators:
+
+```python
+low_stock = inventory.rows.filter({"quantity": {"<": 5}})
+
+notebooks = inventory.rows.filter(
+    {"description": {"contains": "book"}}
+)
+
+short_codes = inventory.rows.filter(
+    {"code": {"startswith": "A"}, "active": {"==": True}}
+)
+```
+
+| Operator | Meaning |
+|---|---|
+| `==` | equal to the operand |
+| `!=` | different from the operand |
+| `>`, `>=`, `<`, `<=` | ordered comparison |
+| `in` | value is contained in the operand |
+| `not_in` | value is not contained in the operand |
+| `contains` | operand is contained in the value |
+| `startswith` | string value starts with the operand |
+| `endswith` | string value ends with the operand |
+
+- Conditions are combined with AND: every entry in `where` and every
+  operator for a column must match.
+- Several operators for the same column are allowed:
+  `{"quantity": {">=": 1, "<": 5}}`.
+- `filter()` returns rows in storage order, always in a new list, even when
+  nothing matches.
+- Condition values are not validated against the declared column types;
+  comparisons follow Python semantics, so incompatible operands raise the
+  usual `TypeError`.
+
+A callable can be used when an operator is not enough. It receives the cell
+value and must return a truthy result:
+
+```python
+short_codes = inventory.rows.filter(
+    {"code": lambda code: len(code) <= 3}
+)
+```
+
+Because a dictionary condition is always treated as an operator
+specification, compare a column that stores dictionaries with the `==`
+operator: `{"metadata": {"==": {"origin": "import"}}}`.
+
+## 5. Update rows
 
 `update(where, values)` applies all assignments in `values` to every row
-that satisfies all the equality conditions in `where`:
+that satisfies `where`. Conditions use the same format as `filter()`:
 
 ```python
 updated_count = inventory.rows.update(
@@ -153,10 +213,20 @@ updated_count = inventory.rows.update(
 # 1
 ```
 
+Conditions can be expressions, not only equality:
+
+```python
+inventory.rows.update(
+    where={"code": {"startswith": "B"}},
+    values={"active": True},
+)
+# 1
+```
+
 - `where` and `values` must be non-empty dictionaries naming existing
   columns.
 - Each value in `values` is validated against its column's declared type.
-- Values in `where` are compared with `==` and are not validated against the
+- Condition values are compared directly and are not validated against the
   column type.
 - The return value is the number of updated rows, which is zero when
   nothing matches.
@@ -164,15 +234,14 @@ updated_count = inventory.rows.update(
   request never leaves a partial change behind.
 
 > [!NOTE]
-> Because conditions use `==`, a condition such as `{"quantity": True}`
-> matches a row whose quantity is `1`, following Python's rule that
-> `True == 1`. Inspect results explicitly if you need type-sensitive
-> equality.
+> Because the `==` operator follows Python equality, a condition such as
+> `{"quantity": True}` matches a row whose quantity is `1`, following the
+> rule that `True == 1`. Inspect results explicitly if you need
+> type-sensitive equality.
 
-## 5. Remove rows and clear data
+## 6. Remove and delete rows
 
-`remove(row)` validates the row's structure and types, then removes the
-first row equal to it:
+To remove one specific row by its full content, use `remove(row)`:
 
 ```python
 inventory.rows.remove(
@@ -185,11 +254,25 @@ inventory.rows.remove(
 )
 ```
 
-If no equal row exists, the method raises `ValueError`.
+`remove()` validates the row's structure and types, then removes the first
+equal row. If no equal row exists, it raises `ValueError`.
+
+To remove every row that matches a condition, use `delete(where)`:
+
+```python
+deleted_count = inventory.rows.delete(
+    {"code": {"startswith": "A"}}
+)
+# 1
+```
+
+`delete()` accepts the same conditions as `filter()` and `update()`,
+removes all matching rows, and returns how many were deleted (zero when
+nothing matches).
 
 > [!NOTE]
-> This version does not provide deletion by index or by condition. Rows are
-> removed by their full content.
+> `remove()` targets a single row by its full content; `delete()` targets
+> every row that matches a condition.
 
 To remove all records:
 
@@ -202,7 +285,7 @@ inventory.clear()
 Both methods preserve all columns and their types. `len(inventory)` and
 `len(inventory.rows)` return the current number of rows.
 
-## 6. Change the schema
+## 7. Change the schema
 
 Add a column to a table without rows:
 
@@ -243,10 +326,10 @@ raises `TypeError` and the column keeps its previous type. With integers
 stored in `quantity`, the call above fails; convert the data yourself first
 if you need a real type change.
 
-## 7. Inspect the schema
+## 8. Inspect the schema
 
 ```python
-inventory.columns.get("quantity")    # int
+inventory.columns.get("quantity")     # int
 schema = inventory.columns.get_all()  # new dict: column name → annotation
 
 "code" in inventory.columns           # True
@@ -256,7 +339,7 @@ len(inventory.columns)                # 4
 `get_all()` returns a new dictionary, so modifying it has no effect on the
 table. Use `add`, `remove`, and `update` to change the schema.
 
-## 8. Copies and mutable values
+## 9. Copies and mutable values
 
 RAMTable copies row dictionaries, but it does not deep-copy every value:
 
@@ -273,23 +356,25 @@ mutable values in cells.
 The exception is a default passed to `columns.add()` when rows already
 exist: RAMTable deep-copies that value once per row.
 
-## 9. Errors reference
+## 10. Errors reference
 
 | Exception | Raised for |
 |---|---|
-| `ValueError` | Invalid table or column name, empty schema, non-existent column, row with missing or extra columns, empty update arguments, or row not found during removal. |
-| `TypeError` | Unsupported annotation, non-dictionary row, value that does not match its column type, or non-integer index (including `bool`). |
+| `ValueError` | Invalid table or column name, empty schema, non-existent column, row with missing or extra columns, empty update or filter arguments, unknown filter operator, or row not found during removal. |
+| `TypeError` | Unsupported annotation, non-dictionary row, value that does not match its column type, non-integer index (including `bool`), or an incompatible filter operand. |
 | `IndexError` | Row index out of range. |
 
 Errors are standard Python exceptions with descriptive messages. See the
 [API reference](api.md) for the exceptions raised by each method.
 
-## 10. Scope and limitations
+## 11. Scope and limitations
 
 RAMTable is a local in-memory container, not a database engine:
 
 - it does not persist data between runs;
-- it provides no SQL, advanced filters, indexes, or uniqueness constraints;
+- it provides no SQL, indexes, or uniqueness constraints; filters cover
+  common comparisons, membership, and string matching, but not joins or
+  aggregation;
 - it implements no transactions, no concurrent storage, and no
   synchronization across processes;
 - it is not a replacement for a database when durability, complex queries,

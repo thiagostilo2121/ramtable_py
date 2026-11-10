@@ -134,9 +134,12 @@ The annotation form matters: the fact that a type object exists in the
   annotation.
 - **`Rows.remove(row)`**: performs the same validation before looking for
   an equal row.
-- **`Rows.update(where, values)`**: checks condition columns and validates
-  assigned values. It does not check `where` values against their declared
-  types; they are compared directly using `==`.
+- **`Rows.update(where, values)`**: checks condition columns and operators,
+  and validates assigned values. Condition values are not checked against
+  their declared types; they are evaluated directly by Python.
+- **`Rows.filter(where)` and `Rows.delete(where)`**: check condition
+  columns and operators. They do not validate condition values against
+  column types.
 - **`Columns.add(name, type, default)`**: validates `default` when
   provided. A default is required when rows already exist.
 - **`Columns.update(name, new_type)`**: checks that every existing value
@@ -150,8 +153,9 @@ Values are never converted automatically. If a column is declared as
 
 - `TypeError`: unsupported annotation, non-dictionary row, incompatible
   cell value, incompatible update value, or non-integer row index.
-- `ValueError`: missing or unknown row keys, non-existent column, or
-  update arguments that do not satisfy the required structure.
+- `ValueError`: missing or unknown row keys, non-existent column, empty
+  filter or update arguments, unknown filter operator, or update arguments
+  that do not satisfy the required structure.
 - `IndexError`: row index out of range.
 
 See the [API reference](api.md) for the exceptions each method can raise.
