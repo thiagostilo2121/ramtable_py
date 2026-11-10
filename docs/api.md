@@ -1,11 +1,12 @@
 # API reference
 
 This reference covers every public symbol RAMTable exposes: the `Table`,
-`Columns`, and `Rows` classes, and the optional `TypeValidator`. For an
-example-driven introduction, read the [user guide](guide.md) first.
+`Columns`, and `Rows` classes, the optional `TypeValidator`, and the package
+version. For an example-driven introduction, read the
+[user guide](guide.md) first.
 
 ```python
-from ramtable import Columns, Rows, Table
+from ramtable import Columns, Rows, Table, __version__
 from ramtable.types import TypeValidator
 ```
 
@@ -18,8 +19,20 @@ In normal use you only create a `Table`; it constructs the coordinated
 - [`Columns`](#columns)
 - [`Rows`](#rows)
 - [`TypeValidator`](#typevalidator)
+- [Package version](#package-version)
 - [Internal helpers](#internal-helpers)
 - [Copying behavior](#copying-behavior)
+
+## Package version
+
+```python
+from ramtable import __version__
+```
+
+`__version__` is the version of the installed distribution, read from its
+package metadata. It matches `project.version` in `pyproject.toml` and the
+artifact built from it. In a source checkout that has not been installed,
+it is `"0+unknown"`.
 
 ## `Table`
 
