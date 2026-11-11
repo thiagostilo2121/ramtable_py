@@ -3,6 +3,25 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.4.0dev0]
+
+Adds an automated test suite and runs it in continuous integration.
+
+### Added
+
+- Pytest suite under `tests/` covering `Table`, `Rows`, `Columns`, filtering,
+  mutations, `TypeValidator`, integration workflows, and edge cases.
+- `dev` optional dependency group with `pytest` and `pytest-cov`.
+- Coverage reporting for the test suite.
+
+### Changed
+
+- GitHub Actions now installs the development dependencies and runs the test
+  suite on Python 3.11 through 3.15, in addition to byte-compilation and
+  import checks.
+- Development and contribution documentation now describe the test suite and
+  its commands.
+
 ## [0.3.3]
 
 Adds contribution guidelines for the project.
