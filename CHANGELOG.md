@@ -3,20 +3,10 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.4.0dev2]
+## [0.4.0dev3]
 
-Applies linting fixes across the package and test suite.
+Adds an automated test suite and runs it in continuous integration. Also applies linting fixes across the package and test suite.
 
-### Changed
-
-- Reformatted source and test code to keep lines within the project's
-  79-column style.
-- Simplified the default-value validation branch in `Columns.add` without
-  changing behavior.
-
-## [0.4.0dev1]
-
-Adds an automated test suite and runs it in continuous integration.
 
 ### Added
 
@@ -32,6 +22,10 @@ Adds an automated test suite and runs it in continuous integration.
   import checks.
 - Development and contribution documentation now describe the test suite and
   its commands.
+- Reformatted source and test code to keep lines within the project's
+  79-column style.
+- Simplified the default-value validation branch in `Columns.add` without
+  changing behavior.
 
 ## [0.3.3]
 
