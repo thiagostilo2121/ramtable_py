@@ -122,7 +122,9 @@ def test_repeated_updates_and_deletes_are_deterministic(people_table):
     for _ in range(3):
         people_table.rows.delete({"id": {">": 0}})
         assert len(people_table.rows) == 0
-        people_table.rows.insert({"id": 1, "name": "Ada", "age": 36, "active": True})
+        people_table.rows.insert(
+            {"id": 1, "name": "Ada", "age": 36, "active": True}
+        )
 
 
 def test_none_is_only_valid_for_optional_or_none_columns():

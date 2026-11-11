@@ -183,7 +183,9 @@ def test_delete_supports_multiple_conditions(people_table):
 
 
 def test_delete_supports_callable_conditions(people_table):
-    deleted = people_table.rows.delete({"name": lambda name: name.startswith("L")})
+    deleted = people_table.rows.delete(
+        {"name": lambda name: name.startswith("L")}
+    )
 
     assert deleted == 1
     assert people_table.rows.get_column("id") == [1, 3]

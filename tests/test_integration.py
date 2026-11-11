@@ -30,7 +30,11 @@ def test_full_table_workflow_keeps_rows_and_schema_consistent():
         {"id": 3, "name": "Grace", "age": 45},
     ]
 
-    assert table.rows.update({"age": {"<": 30}}, {"name": "Linus Torvalds"}) == 1
+    updated = table.rows.update(
+        {"age": {"<": 30}},
+        {"name": "Linus Torvalds"},
+    )
+    assert updated == 1
     assert table.rows.get_one(1)["name"] == "Linus Torvalds"
 
     assert table.rows.delete({"id": 1}) == 1

@@ -13,7 +13,7 @@ from .table import Table
 
 try:
     __version__ = version("ramtable")
-except PackageNotFoundError:  # pragma: no cover - source checkout without install
+except PackageNotFoundError:  # pragma: no cover - not installed
     __version__ = "0+unknown"
 
 __all__ = [

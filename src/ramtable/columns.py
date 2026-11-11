@@ -86,11 +86,13 @@ class Columns:
                 "to a table containing rows."
             )
 
-        if default is not _MISSING:
-            if not TypeValidator.matches_type(default, column_type):
-                raise TypeError(
-                    f"Default value does not match {column_type!r}."
-                )
+        if (
+            default is not _MISSING
+            and not TypeValidator.matches_type(default, column_type)
+        ):
+            raise TypeError(
+                f"Default value does not match {column_type!r}."
+            )
 
         # Prepare all default values before changing the table.
         # This prevents partial updates if copying fails.

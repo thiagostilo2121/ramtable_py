@@ -224,7 +224,9 @@ def test_remove_rejects_an_invalid_shape(people_table):
 
 
 def test_remove_rejects_an_invalid_value_type(people_table):
+    row = {"id": "1", "name": "Ada", "age": 36, "active": True}
+
     with pytest.raises(TypeError, match="Invalid value"):
-        people_table.rows.remove({"id": "1", "name": "Ada", "age": 36, "active": True})
+        people_table.rows.remove(row)
 
     assert len(people_table.rows) == 3

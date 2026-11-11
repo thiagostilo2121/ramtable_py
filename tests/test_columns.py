@@ -44,7 +44,11 @@ def test_get_missing_column_raises_value_error(empty_table):
 def test_add_column_to_empty_table_without_default(empty_table):
     empty_table.columns.add("score", int)
 
-    assert empty_table.columns.get_all() == {"id": int, "name": str, "score": int}
+    assert empty_table.columns.get_all() == {
+        "id": int,
+        "name": str,
+        "score": int,
+    }
     assert len(empty_table.rows) == 0
 
 
@@ -178,10 +182,15 @@ def test_update_column_type_does_not_convert_values(people_table):
 
     assert people_table.columns.get("id") is object
     assert people_table.rows.get_column("id") == [1, 2, 3]
-    assert all(isinstance(value, int) for value in people_table.rows.get_column("id"))
+    assert all(
+        isinstance(value, int)
+        for value in people_table.rows.get_column("id")
+    )
 
 
-def test_update_column_type_is_atomic_when_a_value_does_not_match(people_table):
+def test_update_column_type_is_atomic_when_a_value_does_not_match(
+    people_table,
+):
     schema_before = people_table.columns.get_all()
 
     with pytest.raises(TypeError, match="does not match"):
