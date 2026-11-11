@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.4.0dev0]
+## [0.4.0dev1]
 
 Adds an automated test suite and runs it in continuous integration.
 
