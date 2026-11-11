@@ -128,16 +128,16 @@ RAMTable requires **Python 3.11 or later**.
    .venv\Scripts\activate
    ```
 
-4. Install the project in editable mode:
+4. Install the project in editable mode with the test dependencies:
 
    ```bash
    python -m pip install --upgrade pip
-   python -m pip install --editable .
+   python -m pip install --editable ".[dev]"
    ```
 
-RAMTable has no runtime dependencies, and the repository does not define
-development dependencies or extras. If you need to build distributions, install
-the build tools separately:
+RAMTable has no runtime dependencies. The `dev` extra installs `pytest` and
+`pytest-cov`. If you need to build distributions, install the build tools
+separately:
 
 ```bash
 python -m pip install build twine
@@ -145,12 +145,24 @@ python -m pip install build twine
 
 ## Checks, testing, and supported Python versions
 
-The repository does not currently include an automated test suite, and no
-linter, formatter, or static type checker is configured. Contributions should
-still be verified locally.
+The test suite lives in `tests/` and uses pytest. No linter, formatter, or
+static type checker is configured.
 
-The CI workflow installs the package, byte-compiles it, and checks the public
-imports. You can run the same checks from the repository root:
+Run the suite from the repository root:
+
+```bash
+python -m pytest
+```
+
+To include coverage information:
+
+```bash
+python -m pytest --cov=ramtable --cov-report=term-missing
+```
+
+The CI workflow installs the package and its development dependencies, runs
+the test suite, byte-compiles the package, and checks the public imports. You
+can run the non-test checks locally:
 
 ```bash
 python -m compileall -q src/ramtable
@@ -173,14 +185,11 @@ merged. Keep every change compatible with all supported versions.
 ### What to test
 
 - **Bug fixes:** include a regression test that fails before the fix and
-  passes afterwards, once a test framework is available. Until then, describe
-  the reproduction steps and the verification you performed in the pull
-  request.
-- **New functionality:** include tests with the implementation. Because the
-  project does not yet have a configured test framework, discuss the proposed
-  testing approach in the feature Issue first.
-- **Documentation and refactorings:** confirm that the existing examples and
-  public imports still work.
+  passes afterwards.
+- **New functionality:** include tests with the implementation. Tests should
+  verify observable behavior and the resulting table state.
+- **Documentation and refactorings:** confirm that the existing examples,
+  tests, and public imports still work.
 
 Do not claim that a check is passing if you did not run it.
 

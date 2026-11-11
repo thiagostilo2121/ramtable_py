@@ -320,14 +320,14 @@ Return shallow copies of the rows that match `where` (see
 
 Remove all rows while preserving the schema.
 
-### `Rows.get(*indices) -> list[dict[str, Any]]`
+### `Rows.get(*indexes) -> list[dict[str, Any]]`
 
 With no arguments, return all rows. With indexes, return a shallow copy of
 each requested row, in argument order.
 
 **Arguments**
 
-- `indices`: zero or more integer indexes. Negative and repeated indexes
+- `indexes`: zero or more integer indexes. Negative and repeated indexes
   are supported; `bool` is rejected.
 
 **Raises**

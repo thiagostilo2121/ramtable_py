@@ -86,10 +86,10 @@ RAMTable supports parameterized and unparameterized forms of:
 | Annotation | Rule for parameterized forms |
 |---|---|
 | `list[T]` | The value must be a list, and every item must match `T`. |
-| `set[T]` | The value must be a `set`, and every item must match `T`. |
+| `set[T]`, `Set[T]` | The value must be a `set`, and every item must match `T`. |
 | `frozenset[T]` | The value must be a `frozenset`, and every item must match `T`. |
 | `Sequence[T]` | The value must satisfy `collections.abc.Sequence`, and every item must match `T`. |
-| `Set[T]` | The value must satisfy `collections.abc.Set`, and every item must match `T`. |
+| `AbstractSet[T]` | The value must satisfy `collections.abc.Set` (for example, a `set` or `frozenset`), and every item must match `T`. |
 | `dict[K, V]` | The value must be a `dict`; keys and values are validated recursively. |
 | `Mapping[K, V]` | The value must satisfy `collections.abc.Mapping`; keys and values are validated recursively. |
 
