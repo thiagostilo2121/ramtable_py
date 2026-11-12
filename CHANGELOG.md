@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.4.0rc0]
+## [0.4.0]
 
 Adds insert defaults for table columns, an automated test suite, and
 continuous integration coverage. Also applies linting fixes across the
