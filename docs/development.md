@@ -21,6 +21,7 @@ how to prepare a release. It does not change or extend the RAMTable API.
 │       ├── publish-test.yml
 │       ├── publish.yml
 │       └── tests.yml
+├── AGENTS.md
 ├── pyproject.toml
 ├── README.md
 ├── CHANGELOG.md
@@ -36,27 +37,48 @@ how to prepare a release. It does not change or extend the RAMTable API.
 │   ├── development.md
 │   ├── guide.md
 │   └── types-and-validation.md
-└── test_table.py
+├── tests/
+│   ├── conftest.py
+│   └── test_*.py
+└── my_test.py            # local example, ignored by Git
 ```
 
 - `src/ramtable/`: installable package implementation.
-- `test_table.py`: executable example of basic library usage.
+- `tests/`: pytest suite covering the public API and its behavior.
+- `my_test.py`: optional local example of basic library usage; it is not
+  tracked by Git.
 - `docs/`: user guide, API reference, and behavior documentation.
-- `pyproject.toml`: project metadata and build backend configuration.
+- `AGENTS.md`: optional guidance for contributors using AI coding tools; it
+  is available to anyone and does not replace `CONTRIBUTING.md`.
+- `pyproject.toml`: project metadata, development dependencies, and tool
+  configuration.
 - `.github/workflows/`: continuous integration and publication workflows.
 
 ## Set up a local environment
 
-Python 3.11 or later is required. Install the project in editable mode:
+Python 3.11 or later is required. Install the project in editable mode with
+the development dependencies:
 
 ```bash
-python -m pip install --editable .
+python -m pip install --editable ".[dev]"
+```
+
+Run the test suite from the repository root:
+
+```bash
+python -m pytest
+```
+
+To include coverage information:
+
+```bash
+python -m pytest --cov=ramtable --cov-report=term-missing
 ```
 
 Run the example from the repository root:
 
 ```bash
-python test_table.py
+python my_test.py
 ```
 
 Expected output:
@@ -66,11 +88,9 @@ Expected output:
 ['Alicia', 'Bob']
 ```
 
-The repository currently contains an executable example rather than an
-automated test suite. GitHub Actions runs byte-compilation and import checks
-on every supported Python version, plus package validation for release pull
-requests. When tests are added, document the official command here and run
-them before releasing.
+GitHub Actions runs the test suite, byte-compilation, and import checks on
+every supported Python version, plus package validation for release pull
+requests. Run the tests before releasing.
 
 ## Build distributions
 
@@ -91,9 +111,9 @@ the branch:
 
 | Branch | Version form | Example | Published to |
 |---|---|---|---|
-| `dev` | `X.Y.Z.devN` | `0.3.2.dev0` | nothing |
-| `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.3.1rc0`, `0.3.1` | TestPyPI |
-| `main` | `X.Y.Z` | `0.3.1` | PyPI |
+| `dev` | `X.Y.ZdevN` | `0.4.0dev0` | nothing |
+| `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.4.0rc0`, `0.4.0` | TestPyPI |
+| `main` | `X.Y.Z` | `0.4.0` | PyPI |
 
 `MAJOR.MINOR.PATCH` follows semantic versioning:
 
@@ -119,7 +139,7 @@ there before it reaches PyPI. PyPI accepts stable versions only.
    section to `CHANGELOG.md`.
 2. Check that the README and documentation describe current behavior. The
    README must not contain a hardcoded version.
-3. Run the example and all available build/test checks.
+3. Run the example, the test suite, and the build checks.
 4. Build and inspect the wheel and source distribution.
 5. Open a pull request from `dev` to `test_pypi`. The pull request validates
    and builds the distributions without publishing. Merging it publishes the

@@ -2,7 +2,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pyirc
-test_table.py
+my_test.py
 
 .venv/
 venv/

@@ -43,16 +43,16 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Install package
+      - name: Install package and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install .
+          python -m pip install --editable ".[dev]"
 
       - name: Byte-compile package
         run: python -m compileall -q src/ramtable
 
-      # The repository does not ship an automated test suite yet. This import
-      # check verifies that the installed package is importable. Replace this
-      # step with the project's test command once tests are added.
       - name: Import check
         run: python -c "from ramtable import Columns, Rows, Table"
+
+      - name: Run tests
+        run: python -m pytest -ra --cov=ramtable --cov-report=term-missing

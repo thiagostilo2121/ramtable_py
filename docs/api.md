@@ -37,7 +37,11 @@ it is `"0+unknown"`.
 ## `Table`
 
 ```python
-Table(name: str, columns: dict[str, Any])
+Table(
+    name: str,
+    columns: dict[str, Any],
+    defaults: dict[str, Any] | None = None,
+)
 ```
 
 The main container: a named table with a typed schema and rows. Data is not
@@ -52,17 +56,23 @@ share the same record storage.
   only of whitespace.
 - `columns`: non-empty dictionary mapping each column name to an
   annotation supported by `TypeValidator`.
+- `defaults`: optional dictionary mapping existing column names to values
+  used when an inserted row omits that column. Defaults are validated
+  against their column types and stored as deep copies.
 
 **Raises**
 
 - `ValueError`: invalid table name, schema that is not a non-empty
-  dictionary, or an invalid column name.
-- `TypeError`: unsupported column annotation.
+  dictionary, an invalid column name, or a default for a column that does
+  not exist.
+- `TypeError`: unsupported column annotation, `defaults` that is not a
+  dictionary, a default that does not match its column type, or a default
+  that cannot be deep-copied.
 
 ### `Table.clear() -> None`
 
-Remove all records by calling `rows.clear()`. The table name and schema
-are preserved.
+Remove all records by calling `rows.clear()`. The table name, schema, and
+insert defaults are preserved.
 
 ### `len(table) -> int`
 
@@ -82,26 +92,34 @@ storage.
 ### Constructor
 
 ```python
-Columns(columns: dict[str, Any], rows_storage: list[dict[str, Any]])
+Columns(
+    columns: dict[str, Any],
+    rows_storage: list[dict[str, Any]],
+    defaults: dict[str, Any] | None = None,
+)
 ```
 
 Create the schema and validate that it is not empty, that every name is a
 non-empty string, and that every type is supported by `TypeValidator`.
+Optional defaults are validated and deep-copied.
 
 **Arguments**
 
 - `columns`: mapping from column names to type annotations.
 - `rows_storage`: storage shared with `Rows`.
+- `defaults`: optional mapping of column names to insert defaults.
 
 **Raises**
 
-- `ValueError`: schema that is not a non-empty dictionary, or an invalid
-  column name.
-- `TypeError`: unsupported annotation.
+- `ValueError`: schema that is not a non-empty dictionary, an invalid
+  column name, or a default for a column that does not exist.
+- `TypeError`: unsupported annotation, `defaults` that is not a
+  dictionary, a default that does not match its column type, or a default
+  that cannot be deep-copied.
 
 This constructor is primarily used internally by `Table`.
 
-### `Columns.add(name, column_type, default=...) -> None`
+### `Columns.add(name, column_type, fill_value=...) -> None`
 
 Add a column to the schema.
 
@@ -109,22 +127,24 @@ Add a column to the schema.
 
 - `name`: new non-empty column name.
 - `column_type`: supported annotation for the column.
-- `default`: optional value. Required if rows already exist; it is
+- `fill_value`: optional value. Required if rows already exist; it is
   validated against `column_type` and deep-copied separately for every row.
-  If there are no rows, the default is not stored.
+  If there are no rows, the fill value is not stored and does not become an
+  insert default.
 
 **Raises**
 
-- `ValueError`: invalid or duplicate name, or a missing default when rows
-  exist.
-- `TypeError`: unsupported annotation or incompatible default.
+- `ValueError`: invalid or duplicate name, or a missing fill value when
+  rows exist.
+- `TypeError`: unsupported annotation or incompatible fill value.
 
-Default values are prepared before any row is changed. If copying fails,
-the column is not added.
+Fill values are prepared before any row is changed. If copying fails, the
+column is not added.
 
 ### `Columns.remove(name) -> None`
 
-Remove a column from the schema and the corresponding key from every row.
+Remove a column from the schema, its insert default, and the corresponding
+key from every row.
 
 **Arguments**
 
@@ -143,20 +163,31 @@ Change a column's annotation without converting its values.
 - `name`: existing column name.
 - `new_type`: annotation supported by `TypeValidator`.
 
-All current values are checked first. The schema is changed only if every
-value matches `new_type`.
+All current values and the column's insert default, if any, are checked
+first. The schema is changed only if all of them match `new_type`.
 
 **Raises**
 
 - `ValueError`: the column does not exist.
-- `TypeError`: the new annotation is unsupported, or an existing value
-  does not match it.
+- `TypeError`: the new annotation is unsupported, or an existing value or
+  the insert default does not match it.
 
 ### `Columns.get(name) -> Any`
 
 Return the annotation associated with `name`.
 
 **Raises:** `ValueError` if the column does not exist.
+
+### `Columns.get_default(name) -> Any`
+
+Return a deep copy of the insert default associated with `name`.
+
+**Arguments**
+
+- `name`: existing column name with an insert default.
+
+**Raises:** `ValueError` if the column does not exist or has no insert
+default.
 
 ### `Columns.get_all() -> dict[str, Any]`
 
@@ -225,20 +256,23 @@ unknown operator.
 
 ### `Rows.insert(row) -> None`
 
-Validate and append a shallow copy of `row`.
+Validate and append a shallow copy of `row`, filling omitted columns from
+the table's insert defaults.
 
 **Arguments**
 
-- `row`: dictionary containing exactly the schema keys and values
-  compatible with their declared types.
+- `row`: dictionary containing the schema keys and values compatible with
+  their declared types. Columns with an insert default may be omitted.
 
 **Raises**
 
 - `TypeError`: `row` is not a dictionary, or a value does not match its
   type.
-- `ValueError`: keys are missing or undeclared.
+- `ValueError`: keys without an insert default are missing, or keys are
+  undeclared.
 
-The copy is shallow; mutable values may remain shared.
+The copy is shallow; mutable values may remain shared. An insert default is
+deep-copied for each row that omits the column.
 
 ### `Rows.remove(row) -> None`
 
@@ -318,16 +352,16 @@ Return shallow copies of the rows that match `where` (see
 
 ### `Rows.clear() -> None`
 
-Remove all rows while preserving the schema.
+Remove all rows while preserving the schema and insert defaults.
 
-### `Rows.get(*indices) -> list[dict[str, Any]]`
+### `Rows.get(*indexes) -> list[dict[str, Any]]`
 
 With no arguments, return all rows. With indexes, return a shallow copy of
 each requested row, in argument order.
 
 **Arguments**
 
-- `indices`: zero or more integer indexes. Negative and repeated indexes
+- `indexes`: zero or more integer indexes. Negative and repeated indexes
   are supported; `bool` is rejected.
 
 **Raises**
@@ -450,5 +484,9 @@ API:
 
 The schema and returned row dictionaries are shallow copies. The lists and
 dictionaries returned by `get_columns` and `get_column` are new, but their
-items are not copied. The exception is `Columns.add` when rows already
-exist: it deep-copies the default value for each record.
+items are not copied.
+
+Two exceptions use deep copies. `Columns.add` deep-copies its `fill_value`
+for each existing record when rows are present. Insert defaults are
+deep-copied when the table is created, each time a row omits the column, and
+when `Columns.get_default` returns them.
