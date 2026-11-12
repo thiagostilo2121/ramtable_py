@@ -129,9 +129,11 @@ The annotation form matters: the fact that a type object exists in the
 
 ## When values are validated
 
-- **`Rows.insert(row)`**: checks that the object is a dictionary, that its
-  keys exactly match the schema, and that each value matches its column's
-  annotation.
+- **`Rows.insert(row)`**: checks that the object is a dictionary, fills
+  omitted columns that have an insert default, then checks that the
+  resulting keys exactly match the schema and that each value matches its
+  column's annotation. Insert defaults are validated when the table is
+  created.
 - **`Rows.remove(row)`**: performs the same validation before looking for
   an equal row.
 - **`Rows.update(where, values)`**: checks condition columns and operators,
@@ -140,10 +142,15 @@ The annotation form matters: the fact that a type object exists in the
 - **`Rows.filter(where)` and `Rows.delete(where)`**: check condition
   columns and operators. They do not validate condition values against
   column types.
-- **`Columns.add(name, type, default)`**: validates `default` when
-  provided. A default is required when rows already exist.
+- **`Table(..., defaults)`**: validates every insert default against its
+  column type when the table is created. A default for a column that does
+  not exist is rejected, and a default that cannot be deep-copied raises
+  `TypeError`.
+- **`Columns.add(name, type, fill_value)`**: validates `fill_value` when
+  provided. A fill value is required when rows already exist.
 - **`Columns.update(name, new_type)`**: checks that every existing value
-  in the column matches the new type before changing the schema.
+  in the column and its insert default, if any, match the new type before
+  changing the schema.
 
 Values are never converted automatically. If a column is declared as
 `int`, inserting the string `"5"` fails; RAMTable does not convert it to

@@ -126,9 +126,11 @@ The [user guide](docs/guide.md) walks through every operation step by step.
 
 - **Explicit schema:** declare column names and types when the table is
   created.
-- **Runtime validation:** every row must contain exactly the schema's
-  columns, and each value must match its declared type.
+- **Runtime validation:** every row must contain every schema column without
+  an insert default, and each value must match its declared type.
 - **Row operations:** insert, retrieve, update, filter, and delete rows.
+- **Insert defaults:** declare optional column defaults at table creation so
+  inserted rows can omit those columns.
 - **Flexible conditions:** one condition format powers `filter`, `update`,
   and `delete`, with comparison, membership, and string operators.
 - **Schema evolution:** add, remove, or retype columns while accounting for
