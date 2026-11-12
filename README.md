@@ -87,7 +87,7 @@ people = Table(
     },
 )
 
-# Every row must contain exactly the columns declared above.
+# Every row must contain the declared columns; this table has no defaults.
 people.rows.insert(
     {"id": 1, "name": "Ada", "age": 36, "email": "ada@example.com"}
 )
@@ -185,8 +185,13 @@ the dictionary; retrieving a row returns a new dictionary containing the same
 values. Mutable objects used as cell values may therefore remain shared
 with the code that supplied or retrieved them.
 
-`table.clear()` removes all rows and preserves the schema. No operation
-writes to disk: records disappear when the process ends.
+Insert defaults are the exception: they are deep-copied when the table is
+created, for each inserted row that omits the column, and when read with
+`columns.get_default()`.
+
+`table.clear()` removes all rows and preserves the schema and insert
+defaults. No operation writes to disk: records disappear when the process
+ends.
 
 ## Documentation
 

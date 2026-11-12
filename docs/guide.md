@@ -51,15 +51,18 @@ An optional `defaults` mapping declares values for columns that may be
 omitted when inserting rows:
 
 ```python
-inventory = Table(
-    name="inventory",
+tasks = Table(
+    name="tasks",
     columns={
-        "code": str,
-        "quantity": int,
-        "active": bool,
+        "title": str,
+        "status": str,
+        "retries": int,
     },
-    defaults={"quantity": 0, "active": True},
+    defaults={"status": "pending", "retries": 0},
 )
+
+tasks.rows.insert({"title": "write docs"})
+# {'title': 'write docs', 'status': 'pending', 'retries': 0}
 ```
 
 Each default is validated against its column type when the table is created.
@@ -306,8 +309,9 @@ inventory.rows.clear()
 inventory.clear()
 ```
 
-Both methods preserve all columns and their types. `len(inventory)` and
-`len(inventory.rows)` return the current number of rows.
+Both methods preserve all columns, their types, and their insert defaults.
+`len(inventory)` and `len(inventory.rows)` return the current number of
+rows.
 
 ## 7. Change the schema
 
@@ -326,9 +330,8 @@ inventory.columns.add("location", str, fill_value="warehouse")
 The fill value is validated against the column's type and deep-copied
 independently for every row, so mutable values are never shared. When the
 table has no rows, the fill value is optional and is not stored; it does not
-become an insert default. A column added after the table is created can only
-be omitted from inserts if it already has an insert default, which is not the
-case for columns added with `columns.add()`.
+become an insert default. Columns added with `columns.add()` never receive
+an insert default, so future rows must supply them.
 
 Remove a column:
 

@@ -48,7 +48,7 @@ Package code is in `src/ramtable/`, tests in `tests/`.
   version in README or docs.
 - Branches: `dev → test_pypi → main`. Contribute against `dev`; `test_pypi`
   and `main` are release branches.
-- PEP 440 forms: dev `X.Y.Z.devN`, TestPyPI `X.Y.ZrcN` or `X.Y.Z`, PyPI
+- PEP 440 forms: dev `X.Y.ZdevN`, TestPyPI `X.Y.ZrcN` or `X.Y.Z`, PyPI
   stable only. Development versions are never published.
 - Do not bump the version unless asked. A release bump also updates
   `CHANGELOG.md`; sections are newest first.

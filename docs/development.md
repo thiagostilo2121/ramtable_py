@@ -40,12 +40,12 @@ how to prepare a release. It does not change or extend the RAMTable API.
 ├── tests/
 │   ├── conftest.py
 │   └── test_*.py
-└── test_table.py         # local example, ignored by Git
+└── my_test.py            # local example, ignored by Git
 ```
 
 - `src/ramtable/`: installable package implementation.
 - `tests/`: pytest suite covering the public API and its behavior.
-- `test_table.py`: optional local example of basic library usage; it is not
+- `my_test.py`: optional local example of basic library usage; it is not
   tracked by Git.
 - `docs/`: user guide, API reference, and behavior documentation.
 - `AGENTS.md`: optional guidance for contributors using AI coding tools; it
@@ -78,7 +78,7 @@ python -m pytest --cov=ramtable --cov-report=term-missing
 Run the example from the repository root:
 
 ```bash
-python test_table.py
+python my_test.py
 ```
 
 Expected output:
@@ -111,7 +111,7 @@ the branch:
 
 | Branch | Version form | Example | Published to |
 |---|---|---|---|
-| `dev` | `X.Y.Z.devN` | `0.4.0.dev0` | nothing |
+| `dev` | `X.Y.ZdevN` | `0.4.0dev0` | nothing |
 | `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.4.0rc0`, `0.4.0` | TestPyPI |
 | `main` | `X.Y.Z` | `0.4.0` | PyPI |
 

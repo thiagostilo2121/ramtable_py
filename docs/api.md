@@ -71,8 +71,8 @@ share the same record storage.
 
 ### `Table.clear() -> None`
 
-Remove all records by calling `rows.clear()`. The table name and schema
-are preserved.
+Remove all records by calling `rows.clear()`. The table name, schema, and
+insert defaults are preserved.
 
 ### `len(table) -> int`
 
@@ -352,7 +352,7 @@ Return shallow copies of the rows that match `where` (see
 
 ### `Rows.clear() -> None`
 
-Remove all rows while preserving the schema.
+Remove all rows while preserving the schema and insert defaults.
 
 ### `Rows.get(*indexes) -> list[dict[str, Any]]`
 
