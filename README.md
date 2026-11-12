@@ -87,7 +87,7 @@ people = Table(
     },
 )
 
-# Every row must contain exactly the columns declared above.
+# Every row must contain the declared columns; this table has no defaults.
 people.rows.insert(
     {"id": 1, "name": "Ada", "age": 36, "email": "ada@example.com"}
 )
@@ -126,9 +126,11 @@ The [user guide](docs/guide.md) walks through every operation step by step.
 
 - **Explicit schema:** declare column names and types when the table is
   created.
-- **Runtime validation:** every row must contain exactly the schema's
-  columns, and each value must match its declared type.
+- **Runtime validation:** every row must contain every schema column without
+  an insert default, and each value must match its declared type.
 - **Row operations:** insert, retrieve, update, filter, and delete rows.
+- **Insert defaults:** declare optional column defaults at table creation so
+  inserted rows can omit those columns.
 - **Flexible conditions:** one condition format powers `filter`, `update`,
   and `delete`, with comparison, membership, and string operators.
 - **Schema evolution:** add, remove, or retype columns while accounting for
@@ -183,8 +185,13 @@ the dictionary; retrieving a row returns a new dictionary containing the same
 values. Mutable objects used as cell values may therefore remain shared
 with the code that supplied or retrieved them.
 
-`table.clear()` removes all rows and preserves the schema. No operation
-writes to disk: records disappear when the process ends.
+Insert defaults are the exception: they are deep-copied when the table is
+created, for each inserted row that omits the column, and when read with
+`columns.get_default()`.
+
+`table.clear()` removes all rows and preserves the schema and insert
+defaults. No operation writes to disk: records disappear when the process
+ends.
 
 ## Documentation
 

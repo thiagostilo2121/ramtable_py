@@ -47,6 +47,29 @@ Column names must be non-empty strings; names containing only whitespace are
 rejected. The dictionary's insertion order determines the order in which the
 schema is reported.
 
+An optional `defaults` mapping declares values for columns that may be
+omitted when inserting rows:
+
+```python
+tasks = Table(
+    name="tasks",
+    columns={
+        "title": str,
+        "status": str,
+        "retries": int,
+    },
+    defaults={"status": "pending", "retries": 0},
+)
+
+tasks.rows.insert({"title": "write docs"})
+# {'title': 'write docs', 'status': 'pending', 'retries': 0}
+```
+
+Each default is validated against its column type when the table is created.
+Defaults never replace values supplied explicitly by a row. They must also
+support `copy.deepcopy`; if a value cannot be copied, table creation raises
+`TypeError` with the offending column name.
+
 Every table exposes two views over one shared storage:
 
 ```text
@@ -61,8 +84,8 @@ schema.
 
 ## 2. Insert rows
 
-Each row is a dictionary containing all and only the declared columns.
-Values are checked before insertion:
+Each row is a dictionary containing the declared columns, except those with
+an insert default. Values are checked before insertion:
 
 ```python
 inventory.rows.insert(
@@ -84,8 +107,12 @@ inventory.rows.insert(
 )
 ```
 
-- A row missing columns, or containing undeclared ones, raises `ValueError`.
+- A row may omit a column that has an insert default; RAMTable fills it with
+  a deep copy of the default.
+- A row missing a column without a default, or containing undeclared ones,
+  raises `ValueError`.
 - A value that does not match its column's declared type raises `TypeError`.
+  An explicit value is never replaced by a default, even if it is `None`.
 - The table stores a shallow copy of the dictionary you pass in.
 - Values are not required to be unique, and no column is automatically
   treated as a primary key.
@@ -282,8 +309,9 @@ inventory.rows.clear()
 inventory.clear()
 ```
 
-Both methods preserve all columns and their types. `len(inventory)` and
-`len(inventory.rows)` return the current number of rows.
+Both methods preserve all columns, their types, and their insert defaults.
+`len(inventory)` and `len(inventory.rows)` return the current number of
+rows.
 
 ## 7. Change the schema
 
@@ -293,16 +321,17 @@ Add a column to a table without rows:
 inventory.columns.add("location", str)
 ```
 
-If the table already has rows, a default value is required:
+If the table already has rows, a fill value is required:
 
 ```python
-inventory.columns.add("location", str, default="warehouse")
+inventory.columns.add("location", str, fill_value="warehouse")
 ```
 
-The default is validated against the column's type and deep-copied
-independently for every row, so mutable defaults are never shared. When the
-table has no rows, the default is optional and is not stored; future rows
-must supply the column as usual.
+The fill value is validated against the column's type and deep-copied
+independently for every row, so mutable values are never shared. When the
+table has no rows, the fill value is optional and is not stored; it does not
+become an insert default. Columns added with `columns.add()` never receive
+an insert default, so future rows must supply them.
 
 Remove a column:
 
@@ -321,8 +350,9 @@ inventory.columns.update("quantity", float)
 ```
 
 Retyping never converts stored values. The change is applied only when every
-existing value already matches the new annotation; otherwise the method
-raises `TypeError` and the column keeps its previous type. With integers
+existing value already matches the new annotation and the column's insert
+default, if any, also matches; otherwise the method raises `TypeError` and
+the column keeps its previous type. With integers
 stored in `quantity`, the call above fails; convert the data yourself first
 if you need a real type change.
 
@@ -339,6 +369,16 @@ len(inventory.columns)                # 4
 `get_all()` returns a new dictionary, so modifying it has no effect on the
 table. Use `add`, `remove`, and `update` to change the schema.
 
+Read an insert default with `get_default()`:
+
+```python
+inventory.columns.get_default("active")  # True
+```
+
+The method returns a deep copy, so mutating it does not change the stored
+default. It raises `ValueError` when the column does not exist or has no
+insert default. Removing a column also removes its insert default.
+
 ## 9. Copies and mutable values
 
 RAMTable copies row dictionaries, but it does not deep-copy every value:
@@ -353,15 +393,17 @@ object in both. Mutating it through either reference is visible through the
 other. Keep this in mind when storing lists, dictionaries, or other
 mutable values in cells.
 
-The exception is a default passed to `columns.add()` when rows already
-exist: RAMTable deep-copies that value once per row.
+Two exceptions apply. A fill value passed to `columns.add()` when rows
+already exist is deep-copied once per row. Likewise, an insert default is
+deep-copied when the table is created, whenever a row omits that column, and
+when it is returned by `columns.get_default()`.
 
 ## 10. Errors reference
 
 | Exception | Raised for |
 |---|---|
-| `ValueError` | Invalid table or column name, empty schema, non-existent column, row with missing or extra columns, empty update or filter arguments, unknown filter operator, or row not found during removal. |
-| `TypeError` | Unsupported annotation, non-dictionary row, value that does not match its column type, non-integer index (including `bool`), or an incompatible filter operand. |
+| `ValueError` | Invalid table or column name, empty schema, non-existent column, a default for an unknown column, row with missing or extra columns, empty update or filter arguments, unknown filter operator, or row not found during removal. |
+| `TypeError` | Unsupported annotation, non-dictionary defaults or row, value or default that does not match its column type, a default that cannot be deep-copied, non-integer index (including `bool`), or an incompatible filter operand. |
 | `IndexError` | Row index out of range. |
 
 Errors are standard Python exceptions with descriptive messages. See the

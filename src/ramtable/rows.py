@@ -152,13 +152,26 @@ class Rows:
     def insert(self, row: dict[str, Any]) -> None:
         """Validate and append a shallow copy of ``row``.
 
+        Columns omitted from ``row`` are filled from the table's insert
+        defaults when available. Columns without a default remain required.
+
         Raises:
             TypeError: If the row or one of its values is invalid.
-            ValueError: If the row does not have exactly the schema columns.
+            ValueError: If the row does not have exactly the schema columns
+                after insert defaults are applied.
         """
 
-        self._validate(row)
-        self._storage.append(row.copy())
+        if not isinstance(row, dict):
+            raise TypeError("Row must be a dictionary.")
+
+        completed = row.copy()
+
+        for name, value in self._columns._insert_defaults().items():
+            if name not in completed:
+                completed[name] = value
+
+        self._validate(completed)
+        self._storage.append(completed)
 
     def remove(self, row: dict[str, Any]) -> None:
         """Remove the first row equal to ``row`` after validating its shape.
