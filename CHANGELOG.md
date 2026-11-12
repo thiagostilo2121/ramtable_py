@@ -3,13 +3,19 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.4.0dev3]
+## [0.4.0dev4]
 
-Adds an automated test suite and runs it in continuous integration. Also applies linting fixes across the package and test suite.
-
+Adds insert defaults for table columns, an automated test suite, and
+continuous integration coverage. Also applies linting fixes across the
+package and test suite.
 
 ### Added
 
+- Optional `defaults` mapping for `Table` so inserted rows can omit columns
+  with declared defaults. Defaults are validated, deep-copied for isolation,
+  and available through `Columns.get_default()`.
+- Insert defaults must support `deepcopy`; a non-copyable default raises
+  `TypeError` during table creation with the affected column name.
 - Pytest suite under `tests/` covering `Table`, `Rows`, `Columns`, filtering,
   mutations, `TypeValidator`, integration workflows, and edge cases.
 - `dev` optional dependency group with `pytest` and `pytest-cov`.
@@ -17,6 +23,8 @@ Adds an automated test suite and runs it in continuous integration. Also applies
 
 ### Changed
 
+- `Columns.add()` now uses `fill_value` instead of `default` for the value
+  applied to existing rows. It does not create an insert default.
 - GitHub Actions now installs the development dependencies and runs the test
   suite on Python 3.11 through 3.15, in addition to byte-compilation and
   import checks.
@@ -24,7 +32,7 @@ Adds an automated test suite and runs it in continuous integration. Also applies
   its commands.
 - Reformatted source and test code to keep lines within the project's
   79-column style.
-- Simplified the default-value validation branch in `Columns.add` without
+- Simplified the fill-value validation branch in `Columns.add` without
   changing behavior.
 
 ## [0.3.3]
