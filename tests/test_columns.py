@@ -41,7 +41,7 @@ def test_get_missing_column_raises_value_error(empty_table):
         empty_table.columns.get("missing")
 
 
-def test_add_column_to_empty_table_without_default(empty_table):
+def test_add_column_to_empty_table_without_fill_value(empty_table):
     empty_table.columns.add("score", int)
 
     assert empty_table.columns.get_all() == {
@@ -52,17 +52,17 @@ def test_add_column_to_empty_table_without_default(empty_table):
     assert len(empty_table.rows) == 0
 
 
-def test_add_column_to_empty_table_does_not_store_an_unused_default():
+def test_add_column_to_empty_table_does_not_store_an_unused_fill_value():
     table = Table("items", {"id": int})
 
-    table.columns.add("tags", list[str], default=["new"])
+    table.columns.add("tags", list[str], fill_value=["new"])
 
     assert table.columns.get("tags") == list[str]
     assert table.rows.get_all() == []
 
 
-def test_add_column_requires_default_when_rows_exist(people_table):
-    with pytest.raises(ValueError, match="default value is required"):
+def test_add_column_requires_fill_value_when_rows_exist(people_table):
+    with pytest.raises(ValueError, match="fill value is required"):
         people_table.columns.add("score", int)
 
     assert "score" not in people_table.columns
@@ -75,7 +75,7 @@ def test_add_column_requires_default_when_rows_exist(people_table):
 
 
 def test_add_column_initializes_every_existing_row(people_table):
-    people_table.columns.add("score", int, default=10)
+    people_table.columns.add("score", int, fill_value=10)
 
     assert people_table.columns.get("score") is int
     assert people_table.rows.get_columns("id", "score") == {
@@ -84,33 +84,33 @@ def test_add_column_initializes_every_existing_row(people_table):
     }
 
 
-def test_add_column_with_invalid_default_leaves_schema_and_rows_unchanged(
+def test_add_column_with_invalid_fill_value_leaves_schema_and_rows_unchanged(
     people_table,
 ):
     schema_before = people_table.columns.get_all()
     rows_before = people_table.rows.get_all()
 
-    with pytest.raises(TypeError, match="Default value"):
-        people_table.columns.add("score", int, default="invalid")
+    with pytest.raises(TypeError, match="Fill value"):
+        people_table.columns.add("score", int, fill_value="invalid")
 
     assert people_table.columns.get_all() == schema_before
     assert people_table.rows.get_all() == rows_before
 
 
-def test_add_column_deep_copies_mutable_default_per_row():
+def test_add_column_deep_copies_mutable_fill_value_per_row():
     table = Table("items", {"id": int})
     table.rows.insert({"id": 1})
     table.rows.insert({"id": 2})
-    default = ["new"]
+    fill_value = ["new"]
 
-    table.columns.add("tags", list[str], default=default)
+    table.columns.add("tags", list[str], fill_value=fill_value)
 
     stored = table.rows.get_all()
     stored[0]["tags"].append("changed")
 
     assert table.rows.get_one(0)["tags"] == ["new", "changed"]
     assert table.rows.get_one(1)["tags"] == ["new"]
-    assert default == ["new"]
+    assert fill_value == ["new"]
 
 
 @pytest.mark.parametrize("name", ["", "   ", None, 1])

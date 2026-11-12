@@ -40,7 +40,7 @@ def test_full_table_workflow_keeps_rows_and_schema_consistent():
     assert table.rows.delete({"id": 1}) == 1
     assert table.rows.get_column("id") == [2, 3]
 
-    table.columns.add("active", bool, default=True)
+    table.columns.add("active", bool, fill_value=True)
     assert table.rows.get_column("active") == [True, True]
 
     table.columns.remove("age")
@@ -100,7 +100,7 @@ def test_multiple_consecutive_mutations_preserve_invariants():
         assert_rows_match_schema(table)
 
     table.rows.update({"id": {">=": 3}}, {"name": "updated"})
-    table.columns.add("active", bool, default=True)
+    table.columns.add("active", bool, fill_value=True)
     table.rows.delete({"id": {">": 4}})
     table.columns.remove("name")
     table.rows.insert({"id": 10, "active": False})

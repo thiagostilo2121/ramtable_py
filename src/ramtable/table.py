@@ -18,17 +18,22 @@ class Table:
         self,
         name: str,
         columns: dict[str, Any],
+        defaults: dict[str, Any] | None = None,
     ) -> None:
         """Create a table with a non-empty name and schema.
 
         Args:
             name: Descriptive table name.
             columns: Dictionary of column names and supported annotations.
+            defaults: Optional mapping of column names to values used when
+                an inserted row omits that column.
 
         Raises:
             ValueError: If the name is not a non-empty string, the schema is
-                empty, or a column name is invalid.
-            TypeError: If a column annotation is unsupported.
+                empty, a column name is invalid, or a default names an
+                unknown column.
+            TypeError: If a column annotation is unsupported, the defaults
+                are not a dictionary, or a default does not match its type.
         """
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Table name must be a non-empty string.")
@@ -38,7 +43,7 @@ class Table:
         # Shared internal storage.
         storage: list[dict[str, Any]] = []
 
-        self.columns = Columns(columns, storage)
+        self.columns = Columns(columns, storage, defaults)
         self.rows = Rows(self.columns, storage)
 
     def clear(self) -> None:
