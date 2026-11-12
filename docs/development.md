@@ -21,6 +21,7 @@ how to prepare a release. It does not change or extend the RAMTable API.
 │       ├── publish-test.yml
 │       ├── publish.yml
 │       └── tests.yml
+├── AGENTS.md
 ├── pyproject.toml
 ├── README.md
 ├── CHANGELOG.md
@@ -47,6 +48,8 @@ how to prepare a release. It does not change or extend the RAMTable API.
 - `test_table.py`: optional local example of basic library usage; it is not
   tracked by Git.
 - `docs/`: user guide, API reference, and behavior documentation.
+- `AGENTS.md`: optional guidance for contributors using AI coding tools; it
+  is available to anyone and does not replace `CONTRIBUTING.md`.
 - `pyproject.toml`: project metadata, development dependencies, and tool
   configuration.
 - `.github/workflows/`: continuous integration and publication workflows.

@@ -8,6 +8,7 @@ maintained and how to prepare a contribution that is easy to review.
 ## Contents
 
 - [Ways to contribute](#ways-to-contribute)
+- [AI-assisted contributions](#ai-assisted-contributions)
 - [New features require approval](#new-features-require-approval)
 - [Maintenance and review expectations](#maintenance-and-review-expectations)
 - [Branch workflow](#branch-workflow)
@@ -30,6 +31,20 @@ Contributions of all sizes are appreciated:
 - performance improvements;
 - new features, after prior approval;
 - other improvements that fit the project's goals.
+
+## AI-assisted contributions
+
+The repository includes an [`AGENTS.md`](AGENTS.md) file for contributors who
+use AI coding assistants or other AI tools as part of their workflow. It
+collects the project's setup commands, architecture notes, conventions, and
+release rules so these tools can work with accurate context.
+
+`AGENTS.md` is available in the repository for anyone to use. It is optional
+guidance, not a replacement for this guide: contributors remain responsible
+for reviewing AI-generated changes, running the checks, keeping changes
+focused, and following the approval and pull request rules described here. If
+project conventions or commands change, update `AGENTS.md` along with the
+related documentation.
 
 ## New features require approval
 
