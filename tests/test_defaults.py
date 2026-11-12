@@ -173,8 +173,11 @@ def test_get_default_requires_an_existing_column():
 
 
 def test_get_default_reports_columns_without_a_default():
-    table = Table("items", {"id": int, "name": str},
-                  defaults={"id": 0})
+    table = Table(
+        "items",
+        {"id": int, "name": str},
+        defaults={"id": 0},
+    )
 
     with pytest.raises(ValueError, match="does not have a default"):
         table.columns.get_default("name")
@@ -319,6 +322,16 @@ def test_update_rejects_a_type_incompatible_with_the_default():
         table.columns.update("id", str)
 
     assert table.columns.get("id") is int
+
+
+def test_update_accepts_a_type_compatible_with_the_default():
+    table = Table("items", {"id": int}, defaults={"id": 0})
+
+    table.columns.update("id", int | str)
+
+    assert table.columns.get("id") == int | str
+    table.rows.insert({})
+    assert table.rows.get_one(0) == {"id": 0}
 
 
 def test_columns_add_fill_value_is_not_an_insert_default():
