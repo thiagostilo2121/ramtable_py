@@ -3,6 +3,24 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.4.1rc0]
+
+Reviews the README and documentation, corrects guide examples, and updates
+stale workflow comments. No behavior changes.
+
+### Changed
+
+- Rewrote `README.md` and the documents under `docs/` to remove filler,
+  passive constructions, and formulaic phrasing. Examples, signatures, and
+  exception lists stay unchanged.
+- Corrected the user guide's remove, schema, and copy examples so they match
+  the table state and run in sequence.
+- Removed the duplicate project status section from `README.md`.
+- `docs/development.md` no longer pins an output block for `my_test.py`. The
+  local example changes independently of the documentation.
+- Corrected the test-suite comments in the PyPI and TestPyPI publish
+  workflows to point at `tests.yml`.
+
 ## [0.4.0]
 
 Adds insert defaults for table columns, an automated test suite, and

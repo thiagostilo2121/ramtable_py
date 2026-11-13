@@ -1,13 +1,12 @@
 # User guide
 
-This guide explains how to model temporary data with RAMTable: creating
-tables, working with rows, filtering, evolving the schema, and reading
-data back out.
+RAMTable holds temporary data in typed tables. This guide covers creating
+them, inserting and reading rows, filtering, and changing the schema.
 
-The snippets build on one example: an `inventory` table created in
-section 1 and populated in section 2. Each later section stands alone
-unless stated otherwise. For exact signatures and the exceptions raised by
-each method, see the [API reference](api.md).
+Most examples use one `inventory` table, created in section 1 and populated
+in section 2. Section 1 also defines a separate `tasks` table for insert
+defaults. Later sections stand alone unless noted. For exact signatures and
+exceptions, see the [API reference](api.md).
 
 ## Contents
 
@@ -25,9 +24,9 @@ each method, see the [API reference](api.md).
 
 ## 1. Create a table
 
-A table requires a non-empty name and a schema with at least one column. The
-schema is a dictionary mapping each column name to a supported class or type
-annotation:
+RAMTable requires a non-empty name and a schema with at least one column.
+The schema is a dictionary mapping each column name to a supported class or
+type annotation:
 
 ```python
 from ramtable import Table
@@ -43,12 +42,10 @@ inventory = Table(
 )
 ```
 
-Column names must be non-empty strings; names containing only whitespace are
-rejected. The dictionary's insertion order determines the order in which the
-schema is reported.
+Column names must be non-empty strings with at least one non-whitespace
+character. The schema keeps the dictionary order.
 
-An optional `defaults` mapping declares values for columns that may be
-omitted when inserting rows:
+The optional `defaults` mapping gives values to columns that rows may omit:
 
 ```python
 tasks = Table(
@@ -65,12 +62,11 @@ tasks.rows.insert({"title": "write docs"})
 # {'title': 'write docs', 'status': 'pending', 'retries': 0}
 ```
 
-Each default is validated against its column type when the table is created.
-Defaults never replace values supplied explicitly by a row. They must also
-support `copy.deepcopy`; if a value cannot be copied, table creation raises
-`TypeError` with the offending column name.
+RAMTable validates each default when it creates the table and stores a deep
+copy. An explicit value in a row always wins. A default that cannot be
+deep-copied raises `TypeError` with the column name.
 
-Every table exposes two views over one shared storage:
+Each table exposes two views of the same storage:
 
 ```text
 inventory
@@ -78,14 +74,13 @@ inventory
 └── rows    → Rows      the data: insert, read, filter, update, remove
 ```
 
-Because both views share the same storage, schema changes are applied to
-existing rows, and row operations always validate against the current
-schema.
+Schema changes reach the existing rows, and row operations validate against
+the current schema.
 
 ## 2. Insert rows
 
-Each row is a dictionary containing the declared columns, except those with
-an insert default. Values are checked before insertion:
+A row is a dictionary with the declared columns, except those with an insert
+default. RAMTable checks values before insertion:
 
 ```python
 inventory.rows.insert(
@@ -114,8 +109,7 @@ inventory.rows.insert(
 - A value that does not match its column's declared type raises `TypeError`.
   An explicit value is never replaced by a default, even if it is `None`.
 - The table stores a shallow copy of the dictionary you pass in.
-- Values are not required to be unique, and no column is automatically
-  treated as a primary key.
+- Values need not be unique, and no column acts as a primary key.
 
 Validation follows the rules described in
 [types and validation](types-and-validation.md).
@@ -137,7 +131,7 @@ every_row = inventory.rows.get()       # no arguments: all rows
 - With indexes, `get()` returns the rows at those positions, preserving the
   requested order; repeats are allowed.
 - Negative indexes behave as they do for Python lists.
-- Boolean indexes are rejected, and an out-of-range index raises
+- RAMTable rejects boolean indexes; an out-of-range index raises
   `IndexError`.
 
 Read columns as lists:
@@ -214,11 +208,11 @@ short_codes = inventory.rows.filter(
   comparisons follow Python semantics, so incompatible operands raise the
   usual `TypeError`.
 
-A callable can be used when an operator is not enough. It receives the cell
+Use a callable when an operator is not enough. It receives the cell
 value and must return a truthy result:
 
 ```python
-short_codes = inventory.rows.filter(
+three_char_codes = inventory.rows.filter(
     {"code": lambda code: len(code) <= 3}
 )
 ```
@@ -240,7 +234,7 @@ updated_count = inventory.rows.update(
 # 1
 ```
 
-Conditions can be expressions, not only equality:
+Conditions accept expressions too:
 
 ```python
 inventory.rows.update(
@@ -252,13 +246,13 @@ inventory.rows.update(
 
 - `where` and `values` must be non-empty dictionaries naming existing
   columns.
-- Each value in `values` is validated against its column's declared type.
-- Condition values are compared directly and are not validated against the
-  column type.
-- The return value is the number of updated rows, which is zero when
-  nothing matches.
-- The whole request is validated before any row is modified, so an invalid
-  request never leaves a partial change behind.
+- RAMTable validates each value in `values` against its column's declared
+  type.
+- RAMTable compares condition values directly without validating them
+  against the column type.
+- The return value is the number of updated rows, zero when nothing
+  matches.
+- RAMTable validates the whole request before changing any row.
 
 > [!NOTE]
 > Because the `==` operator follows Python equality, a condition such as
@@ -268,6 +262,9 @@ inventory.rows.update(
 
 ## 6. Remove and delete rows
 
+This section continues from section 5, which set the `active` value of B-2
+to `True`.
+
 To remove one specific row by its full content, use `remove(row)`:
 
 ```python
@@ -276,7 +273,7 @@ inventory.rows.remove(
         "code": "B-2",
         "description": "Mechanical pencil",
         "quantity": 3,
-        "active": False,
+        "active": True,
     }
 )
 ```
@@ -315,23 +312,28 @@ rows.
 
 ## 7. Change the schema
 
-Add a column to a table without rows:
+Section 6 left `inventory` empty. On an empty table, add a column without a
+fill value:
 
 ```python
 inventory.columns.add("location", str)
 ```
 
-If the table already has rows, a fill value is required:
+When rows exist, pass a fill value. This example uses a separate table:
 
 ```python
-inventory.columns.add("location", str, fill_value="warehouse")
+stock = Table("stock", {"code": str, "quantity": int})
+stock.rows.insert({"code": "A-10", "quantity": 12})
+
+stock.columns.add("location", str, fill_value="warehouse")
+stock.rows.get_one(0)
+# {'code': 'A-10', 'quantity': 12, 'location': 'warehouse'}
 ```
 
-The fill value is validated against the column's type and deep-copied
-independently for every row, so mutable values are never shared. When the
-table has no rows, the fill value is optional and is not stored; it does not
-become an insert default. Columns added with `columns.add()` never receive
-an insert default, so future rows must supply them.
+RAMTable validates the fill value and deep-copies it for each row, so rows
+never share a mutable value. On an empty table the fill value is optional
+and RAMTable does not store it. Columns added with `columns.add()` never get
+an insert default, so future rows must include them.
 
 Remove a column:
 
@@ -339,31 +341,37 @@ Remove a column:
 inventory.columns.remove("active")
 ```
 
-The column disappears from the schema and from every existing row. The last
-remaining column cannot be removed: a table always keeps at least one
-column.
+The column disappears from the schema and from every existing row. You
+cannot remove the last remaining column; a table always keeps at least one.
 
 Change a column's declared type:
 
 ```python
-inventory.columns.update("quantity", float)
+stock.columns.update("quantity", float)
 ```
 
-Retyping never converts stored values. The change is applied only when every
-existing value already matches the new annotation and the column's insert
-default, if any, also matches; otherwise the method raises `TypeError` and
-the column keeps its previous type. With integers
-stored in `quantity`, the call above fails; convert the data yourself first
-if you need a real type change.
+Retyping never converts stored values. RAMTable changes the schema only when
+every existing value and the insert default, if any, already match the new
+annotation. Otherwise it raises `TypeError` and keeps the old type. The
+integer stored in `stock.quantity` fails this check; convert the data
+yourself first.
 
 ## 8. Inspect the schema
 
-```python
-inventory.columns.get("quantity")     # int
-schema = inventory.columns.get_all()  # new dict: column name → annotation
+This section uses its own `settings` table:
 
-"code" in inventory.columns           # True
-len(inventory.columns)                # 4
+```python
+settings = Table(
+    "settings",
+    {"theme": str, "active": bool},
+    defaults={"active": True},
+)
+
+settings.columns.get("theme")           # str
+schema = settings.columns.get_all()     # new dict: column name → annotation
+
+"theme" in settings.columns             # True
+len(settings.columns)                   # 2
 ```
 
 `get_all()` returns a new dictionary, so modifying it has no effect on the
@@ -372,31 +380,36 @@ table. Use `add`, `remove`, and `update` to change the schema.
 Read an insert default with `get_default()`:
 
 ```python
-inventory.columns.get_default("active")  # True
+settings.columns.get_default("active")  # True
 ```
 
-The method returns a deep copy, so mutating it does not change the stored
-default. It raises `ValueError` when the column does not exist or has no
-insert default. Removing a column also removes its insert default.
+The method returns a deep copy, so mutating it leaves the stored default
+intact. It raises `ValueError` when the column does not exist or has no
+insert default. Removing a column removes its default too.
 
 ## 9. Copies and mutable values
 
-RAMTable copies row dictionaries, but it does not deep-copy every value:
+RAMTable copies row dictionaries; cell values keep their identity:
 
 ```python
+notes = Table("notes", {"id": int, "tags": list[str]})
+
 row = {"id": 1, "tags": ["new"]}
+notes.rows.insert(row)
+
+row["tags"].append("changed")
+notes.rows.get_one(0)["tags"]
+# ['new', 'changed']
 ```
 
-After inserting this row, or after reading a row back, the dictionary you
-hold is independent of the stored one, but the `tags` list is the same
-object in both. Mutating it through either reference is visible through the
-other. Keep this in mind when storing lists, dictionaries, or other
-mutable values in cells.
+After you insert or read a row, your dictionary is independent of the stored
+one, but both point to the same `tags` list. A mutation through either
+reference shows up in both. Watch this when you store lists, dictionaries,
+or other mutable values in cells.
 
-Two exceptions apply. A fill value passed to `columns.add()` when rows
-already exist is deep-copied once per row. Likewise, an insert default is
-deep-copied when the table is created, whenever a row omits that column, and
-when it is returned by `columns.get_default()`.
+Two cases do deep-copy: a `fill_value` passed to `columns.add()` when rows
+exist (once per row), and an insert default (at creation, each time a row
+omits the column, and when `columns.get_default()` returns it).
 
 ## 10. Errors reference
 
@@ -407,11 +420,11 @@ when it is returned by `columns.get_default()`.
 | `IndexError` | Row index out of range. |
 
 Errors are standard Python exceptions with descriptive messages. See the
-[API reference](api.md) for the exceptions raised by each method.
+[API reference](api.md) for the exceptions each method raises.
 
 ## 11. Scope and limitations
 
-RAMTable is a local in-memory container, not a database engine:
+RAMTable is a local in-memory container:
 
 - it does not persist data between runs;
 - it provides no SQL, indexes, or uniqueness constraints; filters cover
@@ -422,5 +435,5 @@ RAMTable is a local in-memory container, not a database engine:
 - it is not a replacement for a database when durability, complex queries,
   or coordination between multiple users are required.
 
-Use RAMTable when the data's lifetime matches the program's execution, and
-when its schema and row operations provide enough structure for the task.
+Use it when the data lives as long as the program and the schema and row
+operations give you enough structure.
