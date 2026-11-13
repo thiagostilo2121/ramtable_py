@@ -47,7 +47,7 @@ class Table:
         self.rows = Rows(self.columns, storage)
 
     def clear(self) -> None:
-        """Remove all records while preserving the column schema."""
+        """Remove all records while preserving the schema and defaults."""
         self.rows.clear()
 
     def __len__(self) -> int:

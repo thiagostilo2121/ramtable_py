@@ -165,10 +165,10 @@ class Rows:
             raise TypeError("Row must be a dictionary.")
 
         completed = row.copy()
+        provided = set(completed)
 
-        for name, value in self._columns._insert_defaults().items():
-            if name not in completed:
-                completed[name] = value
+        for name, value in self._columns._insert_defaults(provided).items():
+            completed[name] = value
 
         self._validate(completed)
         self._storage.append(completed)
@@ -296,7 +296,7 @@ class Rows:
         return [row.copy() for row in self._filter(where)]
 
     def clear(self) -> None:
-        """Remove all rows without changing the schema."""
+        """Remove all rows while preserving the schema and insert defaults."""
         self._storage.clear()
 
     def get(self, *indexes: int) -> list[dict[str, Any]]:
