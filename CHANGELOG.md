@@ -3,6 +3,18 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.4.1dev0]
+
+Rewrites the README and documentation in a direct voice. No behavior changes.
+
+### Changed
+
+- Rewrote `README.md` and the documents under `docs/` to remove filler,
+  passive constructions, and formulaic phrasing. Examples, signatures, and
+  exception lists are unchanged.
+- `docs/development.md` no longer pins an output block for `my_test.py`. The
+  local example changes independently of the documentation.
+
 ## [0.4.0]
 
 Adds insert defaults for table columns, an automated test suite, and
