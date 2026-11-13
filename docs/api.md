@@ -1,17 +1,16 @@
 # API reference
 
-This reference covers every public symbol RAMTable exposes: the `Table`,
-`Columns`, and `Rows` classes, the optional `TypeValidator`, and the package
-version. For an example-driven introduction, read the
-[user guide](guide.md) first.
+This reference documents each public symbol: `Table`, `Columns`, `Rows`,
+`TypeValidator`, and the package version. The [user guide](guide.md)
+introduces them with examples.
 
 ```python
 from ramtable import Columns, Rows, Table, __version__
 from ramtable.types import TypeValidator
 ```
 
-In normal use you only create a `Table`; it constructs the coordinated
-`Columns` and `Rows` instances for you.
+You normally create only a `Table`; it builds the matching `Columns` and
+`Rows`.
 
 ## Contents
 
@@ -44,9 +43,8 @@ Table(
 )
 ```
 
-The main container: a named table with a typed schema and rows. Data is not
-persistent. `table.columns` and `table.rows` are coordinated views that
-share the same record storage.
+A named table with a typed schema and rows. Data lives only in memory.
+`table.columns` and `table.rows` share one record store.
 
 ### Constructor
 
@@ -57,8 +55,8 @@ share the same record storage.
 - `columns`: non-empty dictionary mapping each column name to an
   annotation supported by `TypeValidator`.
 - `defaults`: optional dictionary mapping existing column names to values
-  used when an inserted row omits that column. Defaults are validated
-  against their column types and stored as deep copies.
+  used when an inserted row omits that column. RAMTable validates each
+  default against its column type and stores a deep copy.
 
 **Raises**
 
@@ -71,8 +69,8 @@ share the same record storage.
 
 ### `Table.clear() -> None`
 
-Remove all records by calling `rows.clear()`. The table name, schema, and
-insert defaults are preserved.
+Remove every row, as `rows.clear()` does. The name, schema, and insert
+defaults stay.
 
 ### `len(table) -> int`
 
@@ -81,13 +79,12 @@ Return the current number of rows.
 ### `repr(table) -> str`
 
 Return a debugging representation containing the name, column names, and
-row count. This is not a serialization format.
+row count. Do not use it for serialization.
 
 ## `Columns`
 
-Manage a table's column schema. The instance created by `Table` keeps a
-shallow copy of the initial schema dictionary and shares the table's row
-storage.
+Manages a table's column schema. `Table` passes a shallow copy of the
+initial schema and the shared row storage.
 
 ### Constructor
 
@@ -99,9 +96,9 @@ Columns(
 )
 ```
 
-Create the schema and validate that it is not empty, that every name is a
-non-empty string, and that every type is supported by `TypeValidator`.
-Optional defaults are validated and deep-copied.
+Create the schema. RAMTable rejects an empty schema, a name that is not a
+non-empty string, and a type that `TypeValidator` does not support. It
+validates and deep-copies optional defaults.
 
 **Arguments**
 
@@ -127,10 +124,9 @@ Add a column to the schema.
 
 - `name`: new non-empty column name.
 - `column_type`: supported annotation for the column.
-- `fill_value`: optional value. Required if rows already exist; it is
-  validated against `column_type` and deep-copied separately for every row.
-  If there are no rows, the fill value is not stored and does not become an
-  insert default.
+- `fill_value`: optional value. Required when rows exist; RAMTable validates
+  it against `column_type` and deep-copies it for each row. On an empty
+  table RAMTable does not store it, and it never becomes an insert default.
 
 **Raises**
 
@@ -138,8 +134,8 @@ Add a column to the schema.
   rows exist.
 - `TypeError`: unsupported annotation or incompatible fill value.
 
-Fill values are prepared before any row is changed. If copying fails, the
-column is not added.
+RAMTable prepares fill values before changing any row. If copying fails, it
+adds no column.
 
 ### `Columns.remove(name) -> None`
 
@@ -163,8 +159,8 @@ Change a column's annotation without converting its values.
 - `name`: existing column name.
 - `new_type`: annotation supported by `TypeValidator`.
 
-All current values and the column's insert default, if any, are checked
-first. The schema is changed only if all of them match `new_type`.
+RAMTable checks every current value and the insert default, if any, before
+changing the schema. All must match `new_type`.
 
 **Raises**
 
@@ -191,8 +187,8 @@ default.
 
 ### `Columns.get_all() -> dict[str, Any]`
 
-Return a shallow copy of the schema dictionary. Modifying the returned
-dictionary does not change the schema.
+Return a shallow copy of the schema dictionary. Changes to the returned
+dictionary leave the schema untouched.
 
 ### `name in columns -> bool`
 
@@ -208,8 +204,8 @@ Return a debugging representation of the schema.
 
 ## `Rows`
 
-Manage rows according to a `Columns` instance. `Table` constructs this
-class with shared row storage.
+Manages rows against a `Columns` instance. `Table` constructs it with the
+shared storage.
 
 ### Constructor
 
@@ -244,10 +240,10 @@ condition dictionary maps existing column names to one of:
 | `startswith` | string value starts with the operand |
 | `endswith` | string value ends with the operand |
 
-All entries are combined with AND. Condition values are not validated
-against the declared column types; comparisons follow Python semantics and
-may raise `TypeError` for incompatible operands. A dictionary condition is
-always treated as an operator specification, so compare a column against a
+All entries are combined with AND. RAMTable does not validate condition
+values against the declared column types; Python comparisons apply and may
+raise `TypeError` for incompatible operands. RAMTable treats a dictionary
+condition as an operator specification, so compare a column against a
 dictionary value with `{"==": value}`.
 
 **Raises** for any condition dictionary: `ValueError` if it is not a
@@ -262,7 +258,7 @@ the table's insert defaults.
 **Arguments**
 
 - `row`: dictionary containing the schema keys and values compatible with
-  their declared types. Columns with an insert default may be omitted.
+  their declared types. You may omit columns with an insert default.
 
 **Raises**
 
@@ -271,8 +267,8 @@ the table's insert defaults.
 - `ValueError`: keys without an insert default are missing, or keys are
   undeclared.
 
-The copy is shallow; mutable values may remain shared. An insert default is
-deep-copied for each row that omits the column.
+The copy is shallow, so mutable values stay shared. RAMTable deep-copies an
+insert default for each row that omits the column.
 
 ### `Rows.remove(row) -> None`
 
@@ -300,7 +296,7 @@ full content, use `remove` instead.
 
 **Returns**
 
-- Number of deleted rows, possibly zero.
+- Number of deleted rows, zero when none match.
 
 **Raises**
 
@@ -317,11 +313,11 @@ Update every row that matches all conditions in `where` (see
 - `where`: non-empty dictionary mapping existing column names to
   conditions. Condition values are not checked against the column types.
 - `values`: non-empty dictionary mapping existing column names to new
-  values. Each value is checked against its declared type.
+  values. RAMTable checks each value against its declared type.
 
 **Returns**
 
-- Number of updated rows, possibly zero.
+- Number of updated rows, zero when none match.
 
 **Raises**
 
@@ -329,8 +325,8 @@ Update every row that matches all conditions in `where` (see
   non-existent column or filter operator is named.
 - `TypeError`: a new value does not match its column type.
 
-Arguments are validated and matches are determined before any changes are
-applied. Conditions are not compared type-strictly.
+RAMTable validates the arguments and finds matches before changing any
+row. Comparisons do not enforce types.
 
 ### `Rows.filter(where) -> list[dict[str, Any]]`
 
@@ -343,7 +339,7 @@ Return shallow copies of the rows that match `where` (see
 
 **Returns**
 
-- New list of shallow row copies; empty when nothing matches.
+- A new list of shallow row copies; empty when nothing matches.
 
 **Raises**
 
@@ -398,15 +394,15 @@ return every column in the schema.
 
 **Returns**
 
-- New dictionary of column names to new lists of values. Values are not
-  copied.
+- New dictionary of column names to new lists. RAMTable copies the lists
+  but not the values.
 
 **Raises:** `ValueError` if a requested name does not exist.
 
 ### `Rows.get_column(column) -> list[Any]`
 
-Return a new list containing all values from one column. Values are not
-copied.
+Return a new list containing all values from one column. RAMTable does not
+copy the values.
 
 **Arguments**
 
@@ -428,8 +424,8 @@ Class with class methods in `ramtable.types`. Import it with:
 from ramtable.types import TypeValidator
 ```
 
-Its use is optional; RAMTable invokes it when validating columns, rows,
-and assigned values.
+You rarely call it: RAMTable uses it to validate columns, rows, and
+assigned values.
 
 ### `TypeValidator.is_supported_type(value_type) -> bool`
 
@@ -447,8 +443,8 @@ metadata.
 
 ### `TypeValidator.matches_type(value, value_type) -> bool`
 
-Check whether a value matches a supported annotation. Parameterized
-containers are checked recursively. Simple classes use `isinstance`;
+Check whether a value matches a supported annotation. RAMTable checks
+parameterized containers recursively. Simple classes use `isinstance`;
 `Literal` compares both value and exact type. The value is not converted.
 
 **Arguments**
@@ -466,8 +462,7 @@ annotations and comparison details.
 
 ## Internal helpers
 
-These methods are implementation details and are not part of the stable
-API:
+Implementation details, outside the stable API:
 
 - `Columns._validate_name(name)`: checks that a name is a non-empty string
   containing non-whitespace characters; raises `ValueError` otherwise.
@@ -482,11 +477,10 @@ API:
 
 ## Copying behavior
 
-The schema and returned row dictionaries are shallow copies. The lists and
-dictionaries returned by `get_columns` and `get_column` are new, but their
-items are not copied.
+RAMTable shallow-copies the schema and returned row dictionaries.
+`get_columns` and `get_column` return new lists and dictionaries, but their
+items keep their identity.
 
-Two exceptions use deep copies. `Columns.add` deep-copies its `fill_value`
-for each existing record when rows are present. Insert defaults are
-deep-copied when the table is created, each time a row omits the column, and
-when `Columns.get_default` returns them.
+Two cases use deep copies: `Columns.add` deep-copies `fill_value` for each
+existing record, and insert defaults are deep-copied at creation, each time
+a row omits the column, and when `Columns.get_default` returns them.

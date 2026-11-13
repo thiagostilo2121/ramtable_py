@@ -1,7 +1,7 @@
 # Development and releases
 
-This document summarizes the repository layout, the local workflow, and
-how to prepare a release. It does not change or extend the RAMTable API.
+Repository layout, local workflow, and release steps. Nothing here changes
+the RAMTable API.
 
 ## Contents
 
@@ -48,16 +48,16 @@ how to prepare a release. It does not change or extend the RAMTable API.
 - `my_test.py`: optional local example of basic library usage; it is not
   tracked by Git.
 - `docs/`: user guide, API reference, and behavior documentation.
-- `AGENTS.md`: optional guidance for contributors using AI coding tools; it
-  is available to anyone and does not replace `CONTRIBUTING.md`.
+- `AGENTS.md`: guidance for contributors using AI coding tools. It does not
+  replace `CONTRIBUTING.md`.
 - `pyproject.toml`: project metadata, development dependencies, and tool
   configuration.
 - `.github/workflows/`: continuous integration and publication workflows.
 
 ## Set up a local environment
 
-Python 3.11 or later is required. Install the project in editable mode with
-the development dependencies:
+Use Python 3.11 or later. Install the project in editable mode with the
+development dependencies:
 
 ```bash
 python -m pip install --editable ".[dev]"
@@ -81,16 +81,11 @@ Run the example from the repository root:
 python my_test.py
 ```
 
-Expected output:
-
-```text
-['Alice', 'Bob']
-['Alicia', 'Bob']
-```
+The script prints the result of each operation.
 
 GitHub Actions runs the test suite, byte-compilation, and import checks on
-every supported Python version, plus package validation for release pull
-requests. Run the tests before releasing.
+every supported Python version. Release pull requests also get package
+validation. Run the tests before releasing.
 
 ## Build distributions
 
@@ -101,7 +96,7 @@ installed, build a wheel and source distribution from the repository root:
 python -m build
 ```
 
-Artifacts are written to `dist/`. Verify that the wheel contains the
+The build writes artifacts to `dist/`. Check that the wheel contains the
 `ramtable` package and that its metadata reports the intended version.
 
 ## Versioning
@@ -121,15 +116,14 @@ the branch:
 - `MINOR` for compatible functionality;
 - `MAJOR` for breaking API or behavior changes.
 
-`pyproject.toml` is the single source of truth for the current version. The
-build backend reads it, the GitHub Actions workflows read it, and the
-installed package exposes it as `ramtable.__version__` through its
-distribution metadata. The README uses a dynamic PyPI badge instead of a
-hardcoded number. `CHANGELOG.md` is the only other file with version
-numbers, because it is a historical record of releases.
+`pyproject.toml` holds the current version. The build backend and the GitHub
+Actions workflows read it, and the installed package exposes it as
+`ramtable.__version__` through its distribution metadata. The README uses a
+dynamic PyPI badge. `CHANGELOG.md` is the only other file with version
+numbers because it records releases.
 
 Development versions are never published. TestPyPI accepts release
-candidates and stable versions, so the final stable release can be tested
+candidates and stable versions, so you can test the final stable release
 there before it reaches PyPI. PyPI accepts stable versions only.
 
 ## Preparing a release
@@ -151,13 +145,13 @@ there before it reaches PyPI. PyPI accepts stable versions only.
 7. Open a pull request from `test_pypi` to `main`. Merging it publishes the
    validated artifact to PyPI.
 
-Publication uses PyPI Trusted Publishing with GitHub Actions OIDC. No API
-tokens or repository secrets are required; the publisher and environment are
-configured on PyPI and TestPyPI. See the workflow files in
+Publication uses PyPI Trusted Publishing with GitHub Actions OIDC. It needs
+no API tokens or repository secrets; you configure the publisher and
+environment on PyPI and TestPyPI. See the workflow files in
 `.github/workflows/` for the exact behavior.
 
 ## Project status
 
-RAMTable is in early development. New capabilities should be documented in
-the changelog and API reference when they become part of a release. Future
-plans are not compatibility guarantees or delivery-date commitments.
+RAMTable is in early development. Document new capabilities in the changelog
+and API reference when they ship. Future plans are not compatibility
+guarantees.
