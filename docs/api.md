@@ -116,7 +116,7 @@ validates and deep-copies optional defaults.
 
 This constructor is primarily used internally by `Table`.
 
-### `Columns.add(name, column_type, fill_value=...) -> None`
+### `Columns.add(name, column_type, fill_value=..., *, default=...) -> None`
 
 Add a column to the schema.
 
@@ -124,18 +124,23 @@ Add a column to the schema.
 
 - `name`: new non-empty column name.
 - `column_type`: supported annotation for the column.
-- `fill_value`: optional value. Required when rows exist; RAMTable validates
-  it against `column_type` and deep-copies it for each row. On an empty
-  table RAMTable does not store it, and it never becomes an insert default.
+- `fill_value`: value for existing rows. Required when rows exist; RAMTable
+  validates it against `column_type` and deep-copies it for each row. On an
+  empty table RAMTable does not store it.
+- `default`: optional insert default for future rows. Keyword-only. It is
+  independent of `fill_value`: RAMTable validates and deep-copies it even
+  when the table is empty, and providing it does not satisfy the
+  `fill_value` requirement.
 
 **Raises**
 
 - `ValueError`: invalid or duplicate name, or a missing fill value when
   rows exist.
-- `TypeError`: unsupported annotation or incompatible fill value.
+- `TypeError`: unsupported annotation, incompatible fill value or default,
+  or a value that cannot be deep-copied.
 
-RAMTable prepares fill values before changing any row. If copying fails, it
-adds no column.
+RAMTable validates and prepares both values before changing any row or the
+schema. If either fails, it adds no column and leaves the table unchanged.
 
 ### `Columns.remove(name) -> None`
 
@@ -174,6 +179,37 @@ Return the annotation associated with `name`.
 
 **Raises:** `ValueError` if the column does not exist.
 
+### `Columns.set_default(name, value) -> None`
+
+Set or replace the insert default for a column. Future inserts that omit the
+column use a deep copy of `value`.
+
+**Arguments**
+
+- `name`: existing column name.
+- `value`: value compatible with the column's declared type.
+
+**Raises**
+
+- `ValueError`: the column does not exist.
+- `TypeError`: the value does not match the column type or cannot be
+  deep-copied.
+
+The existing default, if any, stays in place when validation or copying
+fails.
+
+### `Columns.remove_default(name) -> None`
+
+Remove a column's insert default. Future inserts must then include that
+column.
+
+**Arguments**
+
+- `name`: existing column name with an insert default.
+
+**Raises:** `ValueError` if the column does not exist or has no insert
+default.
+
 ### `Columns.get_default(name) -> Any`
 
 Return a deep copy of the insert default associated with `name`.
@@ -182,8 +218,17 @@ Return a deep copy of the insert default associated with `name`.
 
 - `name`: existing column name with an insert default.
 
-**Raises:** `ValueError` if the column does not exist or has no insert
-default.
+**Raises**
+
+- `ValueError`: the column does not exist or has no insert default.
+- `TypeError`: the stored default cannot be deep-copied.
+
+### `Columns.get_defaults() -> dict[str, Any]`
+
+Return a new dictionary with deep copies of every insert default. The
+dictionary is empty when no column has a default.
+
+**Raises:** `TypeError` if a stored default cannot be deep-copied.
 
 ### `Columns.get_all() -> dict[str, Any]`
 
@@ -474,6 +519,9 @@ Implementation details, outside the stable API:
 - `Rows._filter(where)`: validates a condition dictionary and returns the
   stored rows that match it. Shared by `filter`, `delete`, and `update`;
   returned rows are internal references, not copies.
+- `Columns._insert_defaults(provided)`: returns deep copies of the insert
+  defaults for columns not listed in `provided`. `Rows.insert` passes the
+  columns already present in the row.
 
 ## Copying behavior
 
@@ -481,6 +529,6 @@ RAMTable shallow-copies the schema and returned row dictionaries.
 `get_columns` and `get_column` return new lists and dictionaries, but their
 items keep their identity.
 
-Two cases use deep copies: `Columns.add` deep-copies `fill_value` for each
-existing record, and insert defaults are deep-copied at creation, each time
-a row omits the column, and when `Columns.get_default` returns them.
+`Columns.add` deep-copies `fill_value` for each existing record. Insert
+defaults are deep-copied when set, each time a row omits the column, and
+when `Columns.get_default` or `Columns.get_defaults` returns them.

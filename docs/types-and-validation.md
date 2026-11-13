@@ -130,7 +130,7 @@ mean RAMTable implements its semantics.
 - **`Rows.insert(row)`**: checks that the object is a dictionary, fills
   omitted columns that have an insert default, then checks that the
   resulting keys exactly match the schema and that each value matches its
-  column's annotation. RAMTable validates insert defaults at creation.
+  column's annotation. RAMTable validates insert defaults when you set them.
 - **`Rows.remove(row)`**: performs the same validation before looking for
   an equal row.
 - **`Rows.update(where, values)`**: checks condition columns and operators,
@@ -142,8 +142,11 @@ mean RAMTable implements its semantics.
 - **`Table(..., defaults)`**: validates each insert default against its
   column type at creation. It rejects defaults for unknown columns and
   raises `TypeError` for defaults it cannot deep-copy.
-- **`Columns.add(name, type, fill_value)`**: validates `fill_value` when
-  provided. A fill value is required when rows already exist.
+- **`Columns.add(name, type, fill_value, *, default)`**: validates
+  `fill_value` and `default` when provided. A fill value is required when
+  rows already exist. The default applies to future inserts.
+- **`Columns.set_default(name, value)`**: validates the value against the
+  column type and stores a deep copy. It replaces any existing default.
 - **`Columns.update(name, new_type)`**: checks that every existing value
   in the column and its insert default, if any, match the new type before
   changing the schema.
@@ -154,7 +157,8 @@ RAMTable never converts values. Inserting `"5"` into an `int` column raises
 ## Validation failures
 
 - `TypeError`: unsupported annotation, non-dictionary row, incompatible
-  cell value, incompatible update value, or non-integer row index.
+  cell value, incompatible update value, incompatible or non-copyable
+  default, or non-integer row index.
 - `ValueError`: missing or unknown row keys, non-existent column, empty
   filter or update arguments, unknown filter operator, or update arguments
   that do not satisfy the required structure.

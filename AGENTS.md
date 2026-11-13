@@ -27,12 +27,14 @@ Package code is in `src/ramtable/`, tests in `tests/`.
 - `Rows._filter` is the single condition engine behind `filter`, `update`,
   and `delete`; operators live in the `_FILTER_OPERATORS` dict at the top of
   `rows.py`.
-- `Table(..., defaults=...)` declares insert defaults, applied only by
+- `Table(..., defaults=...)`, `columns.add(..., default=...)`, and
+  `Columns.set_default()` declare insert defaults, applied only by
   `Rows.insert`. `columns.add(..., fill_value=...)` only initializes existing
-  rows and never creates an insert default. Defaults are deep-copied;
-  `Columns.get_default` also returns a copy, and non-copyable defaults raise
-  `TypeError` at creation. `Columns.remove/update` must drop or revalidate
-  the associated default.
+  rows and is independent of the default. Defaults are deep-copied;
+  `get_default` and `get_defaults` return copies, and non-copyable defaults
+  raise `TypeError` when set. `remove_default` clears one default;
+  `Columns.remove/update` must drop or revalidate the associated default.
+  `_insert_defaults(provided)` copies only defaults for omitted columns.
 - Inserts and reads use shallow dictionary copies, so mutable cell values may
   be shared. Preserve this behavior.
 - `TypeValidator` (in `types.py`) does recursive runtime checks. Plain classes

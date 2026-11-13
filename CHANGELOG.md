@@ -3,6 +3,29 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [Unreleased]
+
+Completes insert-default management after table creation.
+
+### Added
+
+- `Columns.add()` accepts `default` for future inserts while `fill_value`
+  keeps initializing existing rows. The two values are independent, and a
+  fill value is still required when rows exist.
+- `Columns.set_default()` sets or replaces a column's insert default, and
+  `Columns.remove_default()` clears it.
+- `Columns.get_defaults()` returns deep copies of every insert default.
+
+### Changed
+
+- `Columns.get_default()` and `get_defaults()` raise a descriptive
+  `TypeError` when deep-copying fails.
+- `Columns.add()` raises a descriptive `TypeError` when a fill value cannot
+  be deep-copied.
+- `Rows.insert()` copies defaults only for columns the row omits.
+- `Table.clear()` and `Rows.clear()` now document that they preserve insert
+  defaults.
+
 ## [0.4.1]
 
 Reviews the README and documentation, corrects guide examples, and updates

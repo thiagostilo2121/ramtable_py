@@ -125,7 +125,8 @@ The [user guide](docs/guide.md) documents every operation.
 - **Runtime validation:** every row must contain every schema column without
   an insert default, and each value must match its declared type.
 - **Row operations:** insert, retrieve, update, filter, and delete rows.
-- **Insert defaults:** declare optional column defaults at table creation so
+- **Insert defaults:** declare optional column defaults at table creation, or
+  later with `columns.add(..., default=...)` and `columns.set_default()`, so
   inserted rows can omit those columns.
 - **Flexible conditions:** one condition format powers `filter`, `update`,
   and `delete`, with comparison, membership, and string operators.
@@ -179,8 +180,14 @@ RAMTable stores rows as dictionaries. `insert()` keeps a shallow copy of the
 dictionary you pass, and reading a row returns a new dictionary with the same
 values. Mutable cell values stay shared between your code and the table.
 
-Insert defaults work differently: RAMTable deep-copies them at creation,
-when a row omits the column, and when `columns.get_default()` returns them.
+Insert defaults work differently: RAMTable deep-copies them when you set
+them, when a row omits the column, and when `columns.get_default()` or
+`columns.get_defaults()` returns them. Manage them after creation with
+`columns.set_default()` and `columns.remove_default()`.
+
+`fill_value` is separate from an insert default. When you add a column to a
+table with rows, `fill_value` initializes those rows. A `default` supplies
+future inserts that omit the column, and neither value replaces the other.
 
 `table.clear()` removes every row and keeps the schema and insert defaults.
 RAMTable never writes to disk, so records disappear when the process ends.

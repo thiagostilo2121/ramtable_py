@@ -64,7 +64,9 @@ tasks.rows.insert({"title": "write docs"})
 
 RAMTable validates each default when it creates the table and stores a deep
 copy. An explicit value in a row always wins. A default that cannot be
-deep-copied raises `TypeError` with the column name.
+deep-copied raises `TypeError` with the column name. You can also manage
+defaults after creation with `columns.set_default()`,
+`columns.remove_default()`, and `columns.get_defaults()`.
 
 Each table exposes two views of the same storage:
 
@@ -332,8 +334,44 @@ stock.rows.get_one(0)
 
 RAMTable validates the fill value and deep-copies it for each row, so rows
 never share a mutable value. On an empty table the fill value is optional
-and RAMTable does not store it. Columns added with `columns.add()` never get
-an insert default, so future rows must include them.
+and RAMTable does not store it.
+
+An insert default is independent. This example uses its own table:
+
+```python
+orders = Table("orders", {"code": str, "quantity": int})
+orders.rows.insert({"code": "A-10", "quantity": 12})
+
+orders.columns.add(
+    "status",
+    str,
+    fill_value="archived",
+    default="available",
+)
+
+orders.rows.get_one(0)["status"]              # 'archived'
+orders.rows.insert({"code": "B-2", "quantity": 4})
+orders.rows.get_one(1)["status"]              # 'available'
+```
+
+Providing `default` does not remove the fill-value requirement. If `orders`
+had rows and you called `columns.add("priority", int, default=1)`, RAMTable
+would raise `ValueError`. On an empty table, `default` is stored even though
+no rows need a fill value.
+
+Manage defaults after creation:
+
+```python
+orders.columns.set_default("status", "pending")
+orders.columns.get_default("status")   # 'pending'
+orders.columns.get_defaults()          # {'status': 'pending'}
+
+orders.columns.remove_default("status")
+```
+
+`set_default()` validates the value against the column type and replaces any
+existing default. `remove_default()` makes future inserts require the column
+again. `get_defaults()` returns deep copies of every default.
 
 Remove a column:
 
@@ -341,8 +379,8 @@ Remove a column:
 inventory.columns.remove("active")
 ```
 
-The column disappears from the schema and from every existing row. You
-cannot remove the last remaining column; a table always keeps at least one.
+The column, its values, and its insert default disappear. You cannot remove
+the last remaining column; a table always keeps at least one.
 
 Change a column's declared type:
 
@@ -377,15 +415,18 @@ len(settings.columns)                   # 2
 `get_all()` returns a new dictionary, so modifying it has no effect on the
 table. Use `add`, `remove`, and `update` to change the schema.
 
-Read an insert default with `get_default()`:
+Read one insert default with `get_default()`, or every default with
+`get_defaults()`:
 
 ```python
-settings.columns.get_default("active")  # True
+settings.columns.get_default("active")   # True
+settings.columns.get_defaults()           # {'active': True}
 ```
 
-The method returns a deep copy, so mutating it leaves the stored default
-intact. It raises `ValueError` when the column does not exist or has no
-insert default. Removing a column removes its default too.
+Both methods return deep copies, so mutating the result leaves the stored
+defaults intact. `get_default()` raises `ValueError` when the column does
+not exist or has no insert default. Removing a column removes its default
+too.
 
 ## 9. Copies and mutable values
 
@@ -407,9 +448,10 @@ one, but both point to the same `tags` list. A mutation through either
 reference shows up in both. Watch this when you store lists, dictionaries,
 or other mutable values in cells.
 
-Two cases do deep-copy: a `fill_value` passed to `columns.add()` when rows
-exist (once per row), and an insert default (at creation, each time a row
-omits the column, and when `columns.get_default()` returns it).
+RAMTable deep-copies a `fill_value` passed to `columns.add()` when rows
+exist, once per row. It also deep-copies an insert default when you set it,
+each time a row omits the column, and when `get_default()` or
+`get_defaults()` returns it.
 
 ## 10. Errors reference
 
