@@ -22,9 +22,12 @@ the RAMTable API.
 │       ├── publish.yml
 │       └── tests.yml
 ├── AGENTS.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
 ├── pyproject.toml
 ├── README.md
-├── CHANGELOG.md
+├── zensical.toml
 ├── src/
 │   └── ramtable/
 │       ├── __init__.py
@@ -33,10 +36,22 @@ the RAMTable API.
 │       ├── table.py
 │       └── types.py
 ├── docs/
-│   ├── api.md
-│   ├── development.md
-│   ├── guide.md
-│   └── types-and-validation.md
+│   ├── guide/
+│   │   └── index.md
+│   ├── reference/
+│   │   ├── index.md
+│   │   └── types-and-validation.md
+│   ├── project/
+│   │   ├── changelog.md
+│   │   ├── contributing.md
+│   │   ├── development.md
+│   │   └── license.md
+│   ├── stylesheets/
+│   │   └── extra.css
+│   ├── index.md
+│   └── requirements.txt
+├── scripts/
+│   └── check_built_site.py
 ├── tests/
 │   ├── conftest.py
 │   └── test_*.py
@@ -47,7 +62,14 @@ the RAMTable API.
 - `tests/`: pytest suite covering the public API and its behavior.
 - `my_test.py`: optional local example of basic library usage; it is not
   tracked by Git.
-- `docs/`: user guide, API reference, and behavior documentation.
+- `docs/`: user guide, API reference, validation rules, and project pages.
+- `docs/project/`: changelog, contribution guide, release process, and
+  license. The changelog, contribution, and license pages include the
+  matching files from the repository root.
+- `zensical.toml`: site configuration for Zensical.
+- `scripts/check_built_site.py`: verifies links and anchors in the built site.
+- `CONTRIBUTING.md`: contribution guidelines.
+- `LICENSE`: MIT license text.
 - `AGENTS.md`: guidance for contributors using AI coding tools. It does not
   replace `CONTRIBUTING.md`.
 - `pyproject.toml`: project metadata, development dependencies, and tool

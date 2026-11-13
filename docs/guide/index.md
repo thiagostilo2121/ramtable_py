@@ -6,7 +6,7 @@ them, inserting and reading rows, filtering, and changing the schema.
 Most examples use one `inventory` table, created in section 1 and populated
 in section 2. Section 1 also defines a separate `tasks` table for insert
 defaults. Later sections stand alone unless noted. For exact signatures and
-exceptions, see the [API reference](api.md).
+exceptions, see the [API reference](../reference/index.md).
 
 ## Contents
 
@@ -114,7 +114,7 @@ inventory.rows.insert(
 - Values need not be unique, and no column acts as a primary key.
 
 Validation follows the rules described in
-[types and validation](types-and-validation.md).
+[types and validation](../reference/types-and-validation.md).
 
 ## 3. Read rows and columns
 
@@ -462,7 +462,7 @@ each time a row omits the column, and when `get_default()` or
 | `IndexError` | Row index out of range. |
 
 Errors are standard Python exceptions with descriptive messages. See the
-[API reference](api.md) for the exceptions each method raises.
+[API reference](../reference/index.md) for the exceptions each method raises.
 
 ## 11. Scope and limitations
 

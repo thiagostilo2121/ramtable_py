@@ -1,7 +1,7 @@
 # API reference
 
 This reference documents each public symbol: `Table`, `Columns`, `Rows`,
-`TypeValidator`, and the package version. The [user guide](guide.md)
+`TypeValidator`, and the package version. The [user guide](../guide/index.md)
 introduces them with examples.
 
 ```python

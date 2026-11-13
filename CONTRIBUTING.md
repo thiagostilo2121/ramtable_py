@@ -34,7 +34,9 @@ Contributions of all sizes are appreciated:
 
 ## AI-assisted contributions
 
-The repository includes an [`AGENTS.md`](AGENTS.md) file for contributors who
+The repository includes an
+[`AGENTS.md`](https://github.com/thiagostilo2121/ramtable_py/blob/main/AGENTS.md)
+file for contributors who
 use AI coding assistants or other AI tools as part of their workflow. It
 collects the project's setup commands, architecture notes, conventions, and
 release rules so these tools can work with accurate context.
@@ -228,9 +230,9 @@ Follow the style and structure already used in `src/ramtable`:
 
 When behavior changes, update the relevant documentation in `docs/`:
 
-- `docs/guide.md` for user-facing workflows;
-- `docs/api.md` for signatures, arguments, returns, and exceptions;
-- `docs/types-and-validation.md` for validation rules.
+- `docs/guide/index.md` for user-facing workflows;
+- `docs/reference/index.md` for signatures, arguments, returns, and exceptions;
+- `docs/reference/types-and-validation.md` for validation rules.
 
 The repository history uses Conventional Commits-style messages, such as
 `fix: ...`, `docs: ...`, and `feat: ...`. Following that style is appreciated,
@@ -300,6 +302,7 @@ Search existing Issues first to avoid duplicates.
 
 ## License
 
-RAMTable is released under the MIT License. See [LICENSE](LICENSE) for the
-full text. By contributing, you agree that your contributions may be
+RAMTable is released under the MIT License. See
+[LICENSE](https://github.com/thiagostilo2121/ramtable_py/blob/main/LICENSE) for
+the full text. By contributing, you agree that your contributions may be
 distributed under the same license.

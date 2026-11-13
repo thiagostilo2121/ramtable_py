@@ -116,7 +116,7 @@ A `Table` exposes two views over the same storage:
 - `table.rows`: the data. Insert, read, update, and remove rows.
 - `table.columns`: the schema. Add, remove, and retype columns.
 
-The [user guide](docs/guide.md) documents every operation.
+The [user guide](docs/guide/index.md) documents every operation.
 
 ## Features
 
@@ -171,7 +171,7 @@ events = Table(
 
 Simple classes follow `isinstance` semantics, so a `bool` value also matches
 `int`. `Literal` is stricter: it compares both value and exact type. See
-[types and validation](docs/types-and-validation.md) for the complete rules
+[types and validation](docs/reference/types-and-validation.md) for the complete rules
 and known limitations.
 
 ## Copies and lifecycle
@@ -196,10 +196,10 @@ RAMTable never writes to disk, so records disappear when the process ends.
 
 | Document | Contents |
 |---|---|
-| [User guide](docs/guide.md) | Tables, rows, filtering, schema changes, errors, and limits. |
-| [API reference](docs/api.md) | Every class and method, with arguments, returns, and exceptions. |
-| [Types and validation](docs/types-and-validation.md) | Supported annotations and runtime checking rules. |
-| [Development and releases](docs/development.md) | Project layout, checks, and the release process. |
+| [User guide](docs/guide/index.md) | Tables, rows, filtering, schema changes, errors, and limits. |
+| [API reference](docs/reference/index.md) | Every class and method, with arguments, returns, and exceptions. |
+| [Types and validation](docs/reference/types-and-validation.md) | Supported annotations and runtime checking rules. |
+| [Development and releases](docs/project/development.md) | Project layout, checks, and the release process. |
 | [CHANGELOG](CHANGELOG.md) | Release history. |
 | [LICENSE](LICENSE) | MIT license terms. |
 

@@ -6,10 +6,17 @@ site_dir = "site"
 extra_css = ["stylesheets/extra.css"]
 nav = [
   { "Home" = "index.md" },
-  { "User guide" = "guide.md" },
-  { "API reference" = "api.md" },
-  { "Types and validation" = "types-and-validation.md" },
-  { "Development and releases" = "development.md" },
+  { "Guide" = "guide/index.md" },
+  { "Reference" = [
+    { "API reference" = "reference/index.md" },
+    { "Types and validation" = "reference/types-and-validation.md" },
+  ] },
+  { "Project" = [
+    { "Development and releases" = "project/development.md" },
+    { "Changelog" = "project/changelog.md" },
+    { "Contributing" = "project/contributing.md" },
+    { "License" = "project/license.md" },
+  ] },
 ]
 
 [project.theme]
@@ -37,3 +44,7 @@ primary = "custom"
 accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.pymdownx.snippets]
+base_path = ["."]
+restrict_base_path = true

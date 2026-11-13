@@ -164,4 +164,4 @@ RAMTable never converts values. Inserting `"5"` into an `int` column raises
   that do not satisfy the required structure.
 - `IndexError`: row index out of range.
 
-See the [API reference](api.md) for the exceptions each method can raise.
+See the [API reference](index.md) for the exceptions each method can raise.
