@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.4.1rc0]
+## [0.4.1]
 
 Reviews the README and documentation, corrects guide examples, and updates
 stale workflow comments. No behavior changes.
