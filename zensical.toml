@@ -1,0 +1,39 @@
+[project]
+site_name = "RAMTable"
+site_url = "https://thiagostilo2121.github.io/ramtable_py/"
+docs_dir = "docs"
+site_dir = "site"
+extra_css = ["stylesheets/extra.css"]
+nav = [
+  { "Home" = "index.md" },
+  { "User guide" = "guide.md" },
+  { "API reference" = "api.md" },
+  { "Types and validation" = "types-and-validation.md" },
+  { "Development and releases" = "development.md" },
+]
+
+[project.theme]
+variant = "modern"
+language = "en"
+font = false
+features = [
+  "navigation.path",
+  "navigation.tracking",
+  "content.code.copy",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"

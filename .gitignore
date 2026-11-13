@@ -12,6 +12,9 @@ build/
 dist/
 *.egg-info/
 
+site/
+.cache/
+
 .pytest_cache/
 .tox/
 .coverage
