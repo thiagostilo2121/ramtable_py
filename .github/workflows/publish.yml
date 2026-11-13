@@ -39,9 +39,9 @@ jobs:
           python -m pip install build twine packaging
           python -m pip install .
 
-      # The repository does not ship an automated test suite yet. These
-      # checks verify that the package compiles and is importable. Replace
-      # them with the project's test command once tests are added.
+      # The test workflow runs the full suite on every supported Python
+      # version. These release checks confirm the package compiles and
+      # imports before the build.
       - name: Run checks
         run: |
           python -m compileall -q src/ramtable
