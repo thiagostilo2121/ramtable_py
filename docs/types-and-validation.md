@@ -1,7 +1,8 @@
 # Types and validation
 
-RAMTable checks annotations when a schema changes and values when rows are
-inserted or assigned. It never converts data; the checks run at runtime.
+RAMTable checks annotations when you create or change a schema. It checks
+values when you insert or update rows. The checks run at runtime, and
+RAMTable never converts data.
 
 ## Contents
 

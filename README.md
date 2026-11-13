@@ -196,14 +196,6 @@ RAMTable never writes to disk, so records disappear when the process ends.
 | [CHANGELOG](CHANGELOG.md) | Release history. |
 | [LICENSE](LICENSE) | MIT license terms. |
 
-## Project status
-
-RAMTable lives on [PyPI](https://pypi.org/project/ramtable/) and
-[TestPyPI](https://test.pypi.org/project/ramtable/) as `ramtable`. Use PyPI
-for stable releases and TestPyPI to try release candidates and other
-pre-releases. The PyPI badge above shows the latest published version; the
-[CHANGELOG](CHANGELOG.md) records the full release history.
-
 ## License
 
 RAMTable uses the MIT License. See [LICENSE](LICENSE) for the terms.

@@ -3,9 +3,10 @@
 RAMTable holds temporary data in typed tables. This guide covers creating
 them, inserting and reading rows, filtering, and changing the schema.
 
-The examples share one `inventory` table, created in section 1 and populated
-in section 2. Later sections stand alone unless noted. For exact signatures
-and exceptions, see the [API reference](api.md).
+Most examples use one `inventory` table, created in section 1 and populated
+in section 2. Section 1 also defines a separate `tasks` table for insert
+defaults. Later sections stand alone unless noted. For exact signatures and
+exceptions, see the [API reference](api.md).
 
 ## Contents
 
@@ -211,7 +212,7 @@ Use a callable when an operator is not enough. It receives the cell
 value and must return a truthy result:
 
 ```python
-short_codes = inventory.rows.filter(
+three_char_codes = inventory.rows.filter(
     {"code": lambda code: len(code) <= 3}
 )
 ```
@@ -261,6 +262,9 @@ inventory.rows.update(
 
 ## 6. Remove and delete rows
 
+This section continues from section 5, which set the `active` value of B-2
+to `True`.
+
 To remove one specific row by its full content, use `remove(row)`:
 
 ```python
@@ -269,7 +273,7 @@ inventory.rows.remove(
         "code": "B-2",
         "description": "Mechanical pencil",
         "quantity": 3,
-        "active": False,
+        "active": True,
     }
 )
 ```
@@ -308,16 +312,22 @@ rows.
 
 ## 7. Change the schema
 
-Add a column to a table without rows:
+Section 6 left `inventory` empty. On an empty table, add a column without a
+fill value:
 
 ```python
 inventory.columns.add("location", str)
 ```
 
-You must pass a fill value when the table already has rows:
+When rows exist, pass a fill value. This example uses a separate table:
 
 ```python
-inventory.columns.add("location", str, fill_value="warehouse")
+stock = Table("stock", {"code": str, "quantity": int})
+stock.rows.insert({"code": "A-10", "quantity": 12})
+
+stock.columns.add("location", str, fill_value="warehouse")
+stock.rows.get_one(0)
+# {'code': 'A-10', 'quantity': 12, 'location': 'warehouse'}
 ```
 
 RAMTable validates the fill value and deep-copies it for each row, so rows
@@ -337,23 +347,31 @@ cannot remove the last remaining column; a table always keeps at least one.
 Change a column's declared type:
 
 ```python
-inventory.columns.update("quantity", float)
+stock.columns.update("quantity", float)
 ```
 
 Retyping never converts stored values. RAMTable changes the schema only when
 every existing value and the insert default, if any, already match the new
-annotation. Otherwise it raises `TypeError` and keeps the old type. With
-integers stored in `quantity`, the call above fails; convert the data
+annotation. Otherwise it raises `TypeError` and keeps the old type. The
+integer stored in `stock.quantity` fails this check; convert the data
 yourself first.
 
 ## 8. Inspect the schema
 
-```python
-inventory.columns.get("quantity")     # int
-schema = inventory.columns.get_all()  # new dict: column name → annotation
+This section uses its own `settings` table:
 
-"code" in inventory.columns           # True
-len(inventory.columns)                # 4
+```python
+settings = Table(
+    "settings",
+    {"theme": str, "active": bool},
+    defaults={"active": True},
+)
+
+settings.columns.get("theme")           # str
+schema = settings.columns.get_all()     # new dict: column name → annotation
+
+"theme" in settings.columns             # True
+len(settings.columns)                   # 2
 ```
 
 `get_all()` returns a new dictionary, so modifying it has no effect on the
@@ -362,7 +380,7 @@ table. Use `add`, `remove`, and `update` to change the schema.
 Read an insert default with `get_default()`:
 
 ```python
-inventory.columns.get_default("active")  # True
+settings.columns.get_default("active")  # True
 ```
 
 The method returns a deep copy, so mutating it leaves the stored default
@@ -374,7 +392,14 @@ insert default. Removing a column removes its default too.
 RAMTable copies row dictionaries; cell values keep their identity:
 
 ```python
+notes = Table("notes", {"id": int, "tags": list[str]})
+
 row = {"id": 1, "tags": ["new"]}
+notes.rows.insert(row)
+
+row["tags"].append("changed")
+notes.rows.get_one(0)["tags"]
+# ['new', 'changed']
 ```
 
 After you insert or read a row, your dictionary is independent of the stored

@@ -11,7 +11,9 @@ Rewrites the README and documentation in a direct voice. No behavior changes.
 
 - Rewrote `README.md` and the documents under `docs/` to remove filler,
   passive constructions, and formulaic phrasing. Examples, signatures, and
-  exception lists are unchanged.
+  exception lists stay unchanged.
+- Corrected the user guide's remove, schema, and copy examples so they match
+  the table state and run in sequence.
 - `docs/development.md` no longer pins an output block for `my_test.py`. The
   local example changes independently of the documentation.
 
