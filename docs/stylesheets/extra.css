@@ -1,0 +1,25 @@
+:root {
+  --md-primary-fg-color: #163f4a;
+  --md-primary-fg-color--light: #2b6270;
+  --md-primary-fg-color--dark: #0d2a31;
+  --md-accent-fg-color: #0f7a6c;
+  --md-accent-fg-color--transparent: #0f7a6c1a;
+  --md-typeset-a-color: #0f7a6c;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #0f2a30;
+  --md-primary-fg-color--light: #2b6270;
+  --md-primary-fg-color--dark: #081c21;
+  --md-accent-fg-color: #79d6c6;
+  --md-accent-fg-color--transparent: #79d6c61a;
+  --md-typeset-a-color: #79d6c6;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
+    Palatino, Georgia, serif;
+  letter-spacing: -0.01em;
+}

@@ -1,6 +1,6 @@
 """Public RAMTable API.
 
-Expose :class:`Columns`, :class:`Rows`, and :class:`Table` from the
+Expose ``Columns``, ``Rows``, and ``Table`` from the
 ``ramtable`` package as a concise, stable import path, along with the
 installed package version.
 """

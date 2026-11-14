@@ -6,7 +6,7 @@ them, inserting and reading rows, filtering, and changing the schema.
 Most examples use one `inventory` table, created in section 1 and populated
 in section 2. Section 1 also defines a separate `tasks` table for insert
 defaults. Later sections stand alone unless noted. For exact signatures and
-exceptions, see the [API reference](api.md).
+exceptions, see the [API reference](../reference/index.md).
 
 ## Contents
 
@@ -28,7 +28,7 @@ RAMTable requires a non-empty name and a schema with at least one column.
 The schema is a dictionary mapping each column name to a supported class or
 type annotation:
 
-```python
+```python exec="on" session="guide" source="above"
 from ramtable import Table
 
 inventory = Table(
@@ -47,7 +47,7 @@ character. The schema keeps the dictionary order.
 
 The optional `defaults` mapping gives values to columns that rows may omit:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 tasks = Table(
     name="tasks",
     columns={
@@ -59,12 +59,14 @@ tasks = Table(
 )
 
 tasks.rows.insert({"title": "write docs"})
-# {'title': 'write docs', 'status': 'pending', 'retries': 0}
+print(tasks.rows.get_one(0))
 ```
 
 RAMTable validates each default when it creates the table and stores a deep
 copy. An explicit value in a row always wins. A default that cannot be
-deep-copied raises `TypeError` with the column name.
+deep-copied raises `TypeError` with the column name. You can also manage
+defaults after creation with `columns.set_default()`,
+`columns.remove_default()`, and `columns.get_defaults()`.
 
 Each table exposes two views of the same storage:
 
@@ -82,7 +84,7 @@ the current schema.
 A row is a dictionary with the declared columns, except those with an insert
 default. RAMTable checks values before insertion:
 
-```python
+```python exec="on" session="guide" source="above"
 inventory.rows.insert(
     {
         "code": "A-10",
@@ -100,6 +102,8 @@ inventory.rows.insert(
         "active": False,
     }
 )
+
+print(len(inventory.rows))
 ```
 
 - A row may omit a column that has an insert default; RAMTable fills it with
@@ -112,7 +116,7 @@ inventory.rows.insert(
 - Values need not be unique, and no column acts as a primary key.
 
 Validation follows the rules described in
-[types and validation](types-and-validation.md).
+[types and validation](../reference/types-and-validation.md).
 
 ## 3. Read rows and columns
 
@@ -168,14 +172,14 @@ dictionaries.
 `filter(where)` returns copies of the rows that satisfy every condition in
 `where`. A plain value means equality:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 in_stock = inventory.rows.filter({"active": True})
-# [{'code': 'A-10', ...}]
+print(in_stock)
 ```
 
 For anything beyond equality, map the column to a dictionary of operators:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 low_stock = inventory.rows.filter({"quantity": {"<": 5}})
 
 notebooks = inventory.rows.filter(
@@ -185,6 +189,10 @@ notebooks = inventory.rows.filter(
 short_codes = inventory.rows.filter(
     {"code": {"startswith": "A"}, "active": {"==": True}}
 )
+
+print([row["code"] for row in low_stock])
+print([row["code"] for row in notebooks])
+print([row["code"] for row in short_codes])
 ```
 
 | Operator | Meaning |
@@ -211,10 +219,11 @@ short_codes = inventory.rows.filter(
 Use a callable when an operator is not enough. It receives the cell
 value and must return a truthy result:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 three_char_codes = inventory.rows.filter(
     {"code": lambda code: len(code) <= 3}
 )
+print([row["code"] for row in three_char_codes])
 ```
 
 Because a dictionary condition is always treated as an operator
@@ -226,22 +235,22 @@ operator: `{"metadata": {"==": {"origin": "import"}}}`.
 `update(where, values)` applies all assignments in `values` to every row
 that satisfies `where`. Conditions use the same format as `filter()`:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 updated_count = inventory.rows.update(
     where={"code": "A-10"},
     values={"quantity": 10, "active": False},
 )
-# 1
+print(updated_count)
 ```
 
 Conditions accept expressions too:
 
-```python
-inventory.rows.update(
+```python exec="on" session="guide" source="above" result="text"
+updated_count = inventory.rows.update(
     where={"code": {"startswith": "B"}},
     values={"active": True},
 )
-# 1
+print(updated_count)
 ```
 
 - `where` and `values` must be non-empty dictionaries naming existing
@@ -332,8 +341,44 @@ stock.rows.get_one(0)
 
 RAMTable validates the fill value and deep-copies it for each row, so rows
 never share a mutable value. On an empty table the fill value is optional
-and RAMTable does not store it. Columns added with `columns.add()` never get
-an insert default, so future rows must include them.
+and RAMTable does not store it.
+
+An insert default is independent. This example uses its own table:
+
+```python
+orders = Table("orders", {"code": str, "quantity": int})
+orders.rows.insert({"code": "A-10", "quantity": 12})
+
+orders.columns.add(
+    "status",
+    str,
+    fill_value="archived",
+    default="available",
+)
+
+orders.rows.get_one(0)["status"]              # 'archived'
+orders.rows.insert({"code": "B-2", "quantity": 4})
+orders.rows.get_one(1)["status"]              # 'available'
+```
+
+Providing `default` does not remove the fill-value requirement. If `orders`
+had rows and you called `columns.add("priority", int, default=1)`, RAMTable
+would raise `ValueError`. On an empty table, `default` is stored even though
+no rows need a fill value.
+
+Manage defaults after creation:
+
+```python
+orders.columns.set_default("status", "pending")
+orders.columns.get_default("status")   # 'pending'
+orders.columns.get_defaults()          # {'status': 'pending'}
+
+orders.columns.remove_default("status")
+```
+
+`set_default()` validates the value against the column type and replaces any
+existing default. `remove_default()` makes future inserts require the column
+again. `get_defaults()` returns deep copies of every default.
 
 Remove a column:
 
@@ -341,8 +386,8 @@ Remove a column:
 inventory.columns.remove("active")
 ```
 
-The column disappears from the schema and from every existing row. You
-cannot remove the last remaining column; a table always keeps at least one.
+The column, its values, and its insert default disappear. You cannot remove
+the last remaining column; a table always keeps at least one.
 
 Change a column's declared type:
 
@@ -377,15 +422,18 @@ len(settings.columns)                   # 2
 `get_all()` returns a new dictionary, so modifying it has no effect on the
 table. Use `add`, `remove`, and `update` to change the schema.
 
-Read an insert default with `get_default()`:
+Read one insert default with `get_default()`, or every default with
+`get_defaults()`:
 
 ```python
-settings.columns.get_default("active")  # True
+settings.columns.get_default("active")   # True
+settings.columns.get_defaults()           # {'active': True}
 ```
 
-The method returns a deep copy, so mutating it leaves the stored default
-intact. It raises `ValueError` when the column does not exist or has no
-insert default. Removing a column removes its default too.
+Both methods return deep copies, so mutating the result leaves the stored
+defaults intact. `get_default()` raises `ValueError` when the column does
+not exist or has no insert default. Removing a column removes its default
+too.
 
 ## 9. Copies and mutable values
 
@@ -407,9 +455,10 @@ one, but both point to the same `tags` list. A mutation through either
 reference shows up in both. Watch this when you store lists, dictionaries,
 or other mutable values in cells.
 
-Two cases do deep-copy: a `fill_value` passed to `columns.add()` when rows
-exist (once per row), and an insert default (at creation, each time a row
-omits the column, and when `columns.get_default()` returns it).
+RAMTable deep-copies a `fill_value` passed to `columns.add()` when rows
+exist, once per row. It also deep-copies an insert default when you set it,
+each time a row omits the column, and when `get_default()` or
+`get_defaults()` returns it.
 
 ## 10. Errors reference
 
@@ -420,7 +469,7 @@ omits the column, and when `columns.get_default()` returns it).
 | `IndexError` | Row index out of range. |
 
 Errors are standard Python exceptions with descriptive messages. See the
-[API reference](api.md) for the exceptions each method raises.
+[API reference](../reference/index.md) for the exceptions each method raises.
 
 ## 11. Scope and limitations
 

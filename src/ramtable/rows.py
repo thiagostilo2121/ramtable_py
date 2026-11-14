@@ -24,9 +24,10 @@ _FILTER_OPERATORS: dict[str, Callable[[Any, Any], bool]] = {
 class Rows:
     """Provide operations on a table's rows.
 
-    Rows are stored as dictionaries in storage shared with :class:`Columns`.
+    Rows are stored as dictionaries in storage shared with ``Columns``.
     Returned copies are shallow: the dictionaries are new, but mutable
-    objects they contain may still be shared.
+    objects they contain may still be shared. ``Table`` creates the instance
+    and exposes it as ``table.rows``.
     """
 
     def __init__(
@@ -82,8 +83,8 @@ class Rows:
     def _filter(self, where: dict[str, Any]) -> list[dict[str, Any]]:
         """Return the stored rows that satisfy every condition in ``where``.
 
-        This is the shared engine behind :meth:`filter`, :meth:`delete`, and
-        :meth:`update`. Each key is a column name and each condition is one
+        This is the shared engine behind ``filter``, ``delete``, and
+        ``update``. Each key is a column name and each condition is one
         of:
 
         * a plain value, matched with ``==``;
@@ -154,6 +155,8 @@ class Rows:
 
         Columns omitted from ``row`` are filled from the table's insert
         defaults when available. Columns without a default remain required.
+        The copy is shallow, so mutable values stay shared. An insert
+        default is deep-copied for each row that omits the column.
 
         Raises:
             TypeError: If the row or one of its values is invalid.
@@ -165,10 +168,10 @@ class Rows:
             raise TypeError("Row must be a dictionary.")
 
         completed = row.copy()
+        provided = set(completed)
 
-        for name, value in self._columns._insert_defaults().items():
-            if name not in completed:
-                completed[name] = value
+        for name, value in self._columns._insert_defaults(provided).items():
+            completed[name] = value
 
         self._validate(completed)
         self._storage.append(completed)
@@ -193,8 +196,8 @@ class Rows:
     def delete(self, where: dict[str, Any]) -> int:
         """Delete every row that matches ``where``.
 
-        Conditions use the same format as :meth:`filter` and :meth:`update`.
-        To remove one specific row by its full content, use :meth:`remove`.
+        Conditions use the same format as ``filter`` and ``update``.
+        To remove one specific row by its full content, use ``remove``.
 
         Args:
             where: Non-empty dictionary mapping column names to conditions.
@@ -227,12 +230,12 @@ class Rows:
 
         Both ``where`` and ``values`` must be non-empty dictionaries containing
         existing column names. Conditions use the same flexible format as
-        :meth:`filter`; new values are validated against the schema, but
+        ``filter``; new values are validated against the schema, but
         condition values are not. The entire request is validated before any
         rows are modified.
 
         Args:
-            where: Conditions that a row must satisfy (see :meth:`filter`).
+            where: Conditions that a row must satisfy (see ``filter``).
             values: Columns and values to assign to each matching row.
 
         Returns:
@@ -278,9 +281,23 @@ class Rows:
     def filter(self, where: dict[str, Any]) -> list[dict[str, Any]]:
         """Return shallow copies of the rows that match ``where``.
 
-        Conditions use the same format as :meth:`update` and :meth:`delete`;
-        see :meth:`_filter` for the supported operators and callables. Rows
-        are returned in storage order.
+        Conditions use the same format as ``update`` and ``delete``.
+        Each key is an existing column name and each condition is one of:
+
+        * a plain value, matched with ``==``;
+        * a dictionary of operators whose operands must all match;
+        * a callable that receives the cell value and returns a truthy
+          result when the row matches.
+
+        Supported operators are ``==``, ``!=``, ``>``, ``>=``, ``<``,
+        ``<=``, ``in``, ``not_in``, ``contains``, ``startswith``, and
+        ``endswith``. All conditions are combined with ``and``. A dictionary
+        condition is always read as operator specifications, so compare a
+        column against a dictionary value with ``{"==": value}``.
+
+        Condition values are not checked against the declared column types;
+        Python comparisons apply and may raise ``TypeError`` for incompatible
+        operands. Rows are returned in storage order.
 
         Args:
             where: Non-empty dictionary mapping column names to conditions.
@@ -296,7 +313,7 @@ class Rows:
         return [row.copy() for row in self._filter(where)]
 
     def clear(self) -> None:
-        """Remove all rows without changing the schema."""
+        """Remove all rows while preserving the schema and insert defaults."""
         self._storage.clear()
 
     def get(self, *indexes: int) -> list[dict[str, Any]]:
@@ -357,8 +374,9 @@ class Rows:
     def get_columns(self, *columns: str) -> dict[str, list[Any]]:
         """Return value lists for the requested columns.
 
-        If no names are given, include every schema column. The dictionary and
-        lists are new, but their values are not copied.
+        If no names are given, include every schema column. Duplicate names
+        are allowed; each name appears once in the result. The dictionary
+        and lists are new, but their values are not copied.
 
         Raises:
             ValueError: If a requested column does not exist.

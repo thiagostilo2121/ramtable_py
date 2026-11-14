@@ -1,0 +1,33 @@
+name: Docs update
+
+on:
+  push:
+    branches:
+      - dev
+      - test_pypi
+    paths:
+      - pyproject.toml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: docs-notify
+  cancel-in-progress: true
+
+jobs:
+  notify:
+    name: Trigger docs build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # This job never checks out or executes code from dev or test_pypi.
+      # It only asks the docs workflow to rebuild from main.
+      - name: Dispatch docs workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run docs.yml --ref main
