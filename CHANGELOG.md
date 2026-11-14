@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.5.0rc0]
+## [0.5.0]
 
 Completes insert-default management after table creation and adds the
 documentation site.
