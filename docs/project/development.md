@@ -39,6 +39,11 @@ the RAMTable API.
 │   ├── guide/
 │   │   └── index.md
 │   ├── reference/
+│   │   ├── api/
+│   │   │   ├── columns.md
+│   │   │   ├── rows.md
+│   │   │   ├── table.md
+│   │   │   └── types.md
 │   │   ├── index.md
 │   │   └── types-and-validation.md
 │   ├── project/
@@ -63,6 +68,7 @@ the RAMTable API.
 - `my_test.py`: optional local example of basic library usage; it is not
   tracked by Git.
 - `docs/`: user guide, API reference, validation rules, and project pages.
+- `docs/reference/api/`: class pages generated from the package docstrings.
 - `docs/project/`: changelog, contribution guide, release process, and
   license. The changelog, contribution, and license pages include the
   matching files from the repository root.
@@ -104,6 +110,34 @@ python my_test.py
 ```
 
 The script prints the result of each operation.
+
+## Build the documentation
+
+The documentation uses Zensical and mkdocstrings. Install the pinned
+documentation dependencies in a separate virtual environment:
+
+```bash
+python -m venv .venv-docs
+source .venv-docs/bin/activate
+python -m pip install -r docs/requirements.txt
+```
+
+From the repository root, build the site in strict mode and remove previous
+output:
+
+```bash
+zensical build --strict --clean
+```
+
+The build writes to `site/`. Verify links, anchors, and assets:
+
+```bash
+python scripts/check_built_site.py
+```
+
+Strict mode reports Markdown problems, but it does not inspect links that
+arrive through snippets. The checker reads the generated HTML and covers
+those links.
 
 GitHub Actions runs the test suite, byte-compilation, and import checks on
 every supported Python version. Release pull requests also get package

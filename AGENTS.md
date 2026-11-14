@@ -63,5 +63,6 @@ Package code is in `src/ramtable/`, tests in `tests/`.
 - `.pyirc` and `my_test.py` are gitignored local files; never commit them.
 - `dist/` is gitignored and may contain stale artifacts.
 - When behavior changes, update the matching doc: `docs/guide/index.md` for
-  workflows, `docs/reference/index.md` for signatures, and
+  workflows, the docstrings under `src/ramtable/` (rendered in
+  `docs/reference/api/`) for signatures, and
   `docs/reference/types-and-validation.md` for validation rules.

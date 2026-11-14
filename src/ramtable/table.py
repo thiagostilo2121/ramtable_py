@@ -47,7 +47,9 @@ class Table:
         self.rows = Rows(self.columns, storage)
 
     def clear(self) -> None:
-        """Remove all records while preserving the schema and defaults."""
+        """Remove all records while preserving the name, schema, and
+        defaults.
+        """
         self.rows.clear()
 
     def __len__(self) -> int:
@@ -55,7 +57,11 @@ class Table:
         return len(self.rows)
 
     def __repr__(self) -> str:
-        """Return a representation with the name, columns, and row count."""
+        """Return a debugging representation of the table.
+
+        The result contains the name, column names, and row count. Do not
+        use it for serialization.
+        """
         return (
             f"Table(name={self.name!r}, "
             f"columns={list(self.columns.get_all())!r}, "

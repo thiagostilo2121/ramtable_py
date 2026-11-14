@@ -231,7 +231,8 @@ Follow the style and structure already used in `src/ramtable`:
 When behavior changes, update the relevant documentation in `docs/`:
 
 - `docs/guide/index.md` for user-facing workflows;
-- `docs/reference/index.md` for signatures, arguments, returns, and exceptions;
+- the docstrings in `src/ramtable/` for signatures, arguments, returns, and
+  exceptions, rendered in `docs/reference/api/`;
 - `docs/reference/types-and-validation.md` for validation rules.
 
 The repository history uses Conventional Commits-style messages, such as

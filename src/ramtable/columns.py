@@ -14,7 +14,8 @@ class Columns:
 
     The instance keeps a copy of the supplied schema and shares its owning
     table's row storage so schema changes remain consistent with existing
-    records.
+    records. ``Table`` creates the instance and exposes it as
+    ``table.columns``.
     """
 
     def __init__(
@@ -123,6 +124,14 @@ class Columns:
         used by future inserts that omit the column. It is validated and
         deep-copied even when the table is empty.
 
+        The ``_MISSING`` defaults in the signature are an internal sentinel.
+        Omit ``fill_value`` or ``default`` to mean "no value"; passing the
+        sentinel directly is not supported.
+
+        RAMTable validates and prepares both values before changing the
+        schema or any record. If validation or copying fails, the table is
+        unchanged.
+
         Args:
             name: Column name.
             column_type: Supported type annotation.
@@ -185,7 +194,7 @@ class Columns:
             self._defaults[name] = default_copy
 
     def remove(self, name: str) -> None:
-        """Remove a column from the schema and all records.
+        """Remove a column, its default, and every matching cell.
 
         Raises:
             ValueError: If the column does not exist or is the last column.
@@ -257,7 +266,8 @@ class Columns:
         """Set or replace a column's insert default.
 
         The value is validated against the column's declared type and stored
-        as a deep copy. Future inserts that omit the column use it.
+        as a deep copy. Future inserts that omit the column use it. If
+        validation or copying fails, the previous default stays.
 
         Args:
             name: Existing column name.

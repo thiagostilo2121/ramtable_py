@@ -20,7 +20,16 @@ class TypeValidator:
         Supported forms include classes, ``Any``, ``None``, ``Annotated``,
         unions, ``Literal``, common parameterized collections, fixed or
         variadic tuples, and ``type[T]``. Other annotation forms return
-        ``False``.
+        ``False``. This checks the annotation form only; it does not
+        validate a value or run validators embedded in ``Annotated``
+        metadata.
+
+        Args:
+            value_type: Class or annotation to check.
+
+        Returns:
+            ``True`` if the annotation form is supported, otherwise
+            ``False``.
         """
         if value_type is Any or value_type is None:
             return True
@@ -78,7 +87,17 @@ class TypeValidator:
         Simple types follow Python's ``isinstance`` semantics (for example,
         ``bool`` also matches ``int``). ``Annotated`` checks its base type;
         ``Literal`` requires equality and an exact type match. Elements and
-        keys in parameterized containers are also checked.
+        keys in parameterized containers are also checked. The value is not
+        converted.
+
+        Args:
+            value: Object to validate.
+            value_type: Supported class or annotation.
+
+        Returns:
+            ``True`` if the value matches, otherwise ``False``. If a class
+            annotation cannot be used with ``isinstance``, this method
+            returns ``False``.
         """
         if value_type is Any:
             return True

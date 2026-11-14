@@ -8,7 +8,13 @@ nav = [
   { "Home" = "index.md" },
   { "Guide" = "guide/index.md" },
   { "Reference" = [
-    { "API reference" = "reference/index.md" },
+    { "Overview" = "reference/index.md" },
+    { "API" = [
+      { "Table" = "reference/api/table.md" },
+      { "Columns" = "reference/api/columns.md" },
+      { "Rows" = "reference/api/rows.md" },
+      { "TypeValidator" = "reference/api/types.md" },
+    ] },
     { "Types and validation" = "reference/types-and-validation.md" },
   ] },
   { "Project" = [
@@ -48,3 +54,10 @@ toggle.name = "Switch to light mode"
 [project.markdown_extensions.pymdownx.snippets]
 base_path = ["."]
 restrict_base_path = true
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+options.docstring_style = "google"
+options.show_source = false
+options.show_root_heading = true
+options.filters = ["!^_(?!_)"]
