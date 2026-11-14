@@ -55,6 +55,8 @@ toggle.name = "Switch to light mode"
 base_path = ["."]
 restrict_base_path = true
 
+[project.plugins.markdown-exec]
+
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["src"]
 options.docstring_style = "google"

@@ -28,7 +28,7 @@ RAMTable requires a non-empty name and a schema with at least one column.
 The schema is a dictionary mapping each column name to a supported class or
 type annotation:
 
-```python
+```python exec="on" session="guide" source="above"
 from ramtable import Table
 
 inventory = Table(
@@ -47,7 +47,7 @@ character. The schema keeps the dictionary order.
 
 The optional `defaults` mapping gives values to columns that rows may omit:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 tasks = Table(
     name="tasks",
     columns={
@@ -59,7 +59,7 @@ tasks = Table(
 )
 
 tasks.rows.insert({"title": "write docs"})
-# {'title': 'write docs', 'status': 'pending', 'retries': 0}
+print(tasks.rows.get_one(0))
 ```
 
 RAMTable validates each default when it creates the table and stores a deep
@@ -84,7 +84,7 @@ the current schema.
 A row is a dictionary with the declared columns, except those with an insert
 default. RAMTable checks values before insertion:
 
-```python
+```python exec="on" session="guide" source="above"
 inventory.rows.insert(
     {
         "code": "A-10",
@@ -102,6 +102,8 @@ inventory.rows.insert(
         "active": False,
     }
 )
+
+print(len(inventory.rows))
 ```
 
 - A row may omit a column that has an insert default; RAMTable fills it with
@@ -170,14 +172,14 @@ dictionaries.
 `filter(where)` returns copies of the rows that satisfy every condition in
 `where`. A plain value means equality:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 in_stock = inventory.rows.filter({"active": True})
-# [{'code': 'A-10', ...}]
+print(in_stock)
 ```
 
 For anything beyond equality, map the column to a dictionary of operators:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 low_stock = inventory.rows.filter({"quantity": {"<": 5}})
 
 notebooks = inventory.rows.filter(
@@ -187,6 +189,10 @@ notebooks = inventory.rows.filter(
 short_codes = inventory.rows.filter(
     {"code": {"startswith": "A"}, "active": {"==": True}}
 )
+
+print([row["code"] for row in low_stock])
+print([row["code"] for row in notebooks])
+print([row["code"] for row in short_codes])
 ```
 
 | Operator | Meaning |
@@ -213,10 +219,11 @@ short_codes = inventory.rows.filter(
 Use a callable when an operator is not enough. It receives the cell
 value and must return a truthy result:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 three_char_codes = inventory.rows.filter(
     {"code": lambda code: len(code) <= 3}
 )
+print([row["code"] for row in three_char_codes])
 ```
 
 Because a dictionary condition is always treated as an operator
@@ -228,22 +235,22 @@ operator: `{"metadata": {"==": {"origin": "import"}}}`.
 `update(where, values)` applies all assignments in `values` to every row
 that satisfies `where`. Conditions use the same format as `filter()`:
 
-```python
+```python exec="on" session="guide" source="above" result="text"
 updated_count = inventory.rows.update(
     where={"code": "A-10"},
     values={"quantity": 10, "active": False},
 )
-# 1
+print(updated_count)
 ```
 
 Conditions accept expressions too:
 
-```python
-inventory.rows.update(
+```python exec="on" session="guide" source="above" result="text"
+updated_count = inventory.rows.update(
     where={"code": {"startswith": "B"}},
     values={"active": True},
 )
-# 1
+print(updated_count)
 ```
 
 - `where` and `values` must be non-empty dictionaries naming existing

@@ -57,6 +57,8 @@ the RAMTable API.
 │   └── requirements.txt
 ├── scripts/
 │   └── check_built_site.py
+├── examples/
+│   └── quick_start.py
 ├── tests/
 │   ├── conftest.py
 │   └── test_*.py
@@ -74,6 +76,9 @@ the RAMTable API.
   matching files from the repository root.
 - `zensical.toml`: site configuration for Zensical.
 - `scripts/check_built_site.py`: verifies links and anchors in the built site.
+- `examples/quick_start.py`: the quick start shown on the site home page. The
+  documentation build executes it, and continuous integration runs it against
+  the built wheel.
 - `CONTRIBUTING.md`: contribution guidelines.
 - `LICENSE`: MIT license text.
 - `AGENTS.md`: guidance for contributors using AI coding tools. It does not
@@ -113,13 +118,16 @@ The script prints the result of each operation.
 
 ## Build the documentation
 
-The documentation uses Zensical and mkdocstrings. Install the pinned
-documentation dependencies in a separate virtual environment:
+The documentation uses Zensical, mkdocstrings, and markdown-exec. The
+executable examples import RAMTable, so install the package in the same
+environment. Install the pinned documentation dependencies and the package in
+a separate virtual environment:
 
 ```bash
 python -m venv .venv-docs
 source .venv-docs/bin/activate
 python -m pip install -r docs/requirements.txt
+python -m pip install --editable .
 ```
 
 From the repository root, build the site in strict mode and remove previous
@@ -140,8 +148,9 @@ arrive through snippets. The checker reads the generated HTML and covers
 those links.
 
 GitHub Actions runs the test suite, byte-compilation, and import checks on
-every supported Python version. Release pull requests also get package
-validation. Run the tests before releasing.
+every supported Python version. It also builds the wheel, installs it into a
+clean virtual environment, and runs `examples/quick_start.py`. Release pull
+requests get package validation too. Run the tests before releasing.
 
 ## Build distributions
 
