@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import subprocess
 import sys
@@ -25,6 +26,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import URLError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 from packaging.version import InvalidVersion, Version
@@ -71,7 +73,15 @@ def read_branch_versions(
         ref = f"origin/{branch}"
         try:
             config = tomllib.loads(git_show(ref))
-            version = config["project"]["version"]
+            version = str(config["project"]["version"])
+            Version(version)
+        except InvalidVersion:
+            branches[branch] = {
+                "ref": ref,
+                "version": None,
+                "available": False,
+                "error": f"InvalidVersion: {version}",
+            }
         except Exception as error:  # noqa: BLE001
             branches[branch] = {
                 "ref": ref,
@@ -82,7 +92,7 @@ def read_branch_versions(
         else:
             branches[branch] = {
                 "ref": ref,
-                "version": str(version),
+                "version": version,
                 "available": True,
                 "error": None,
             }
@@ -99,13 +109,36 @@ def _parse_index_payload(
     name: str, url: str, payload: bytes
 ) -> dict[str, Any]:
     data = json.loads(payload)
-    latest = data["info"]["version"]
+    if not isinstance(data, dict):
+        raise ValueError("index payload must be an object")
+    info = data.get("info")
+    if not isinstance(info, dict):
+        raise ValueError("index payload is missing info")
+    latest = info.get("version")
+    if not isinstance(latest, str):
+        raise ValueError("index payload is missing info.version")
+    try:
+        Version(latest)
+    except InvalidVersion as error:
+        raise ValueError(f"invalid latest version: {latest!r}") from error
+
+    releases_data = data.get("releases", {})
+    if not isinstance(releases_data, dict):
+        raise ValueError("index payload releases must be an object")
+
     releases = []
-    for version, files in data.get("releases", {}).items():
+    for version, files in releases_data.items():
+        if not isinstance(version, str) or not isinstance(files, list):
+            continue
+        try:
+            Version(version)
+        except InvalidVersion:
+            continue
         uploaded = [
             item["upload_time_iso_8601"]
             for item in files
-            if item.get("upload_time_iso_8601")
+            if isinstance(item, dict)
+            and isinstance(item.get("upload_time_iso_8601"), str)
         ]
         if not uploaded:
             continue
@@ -113,14 +146,14 @@ def _parse_index_payload(
             {
                 "version": version,
                 "uploaded": min(uploaded),
-                "url": f"{PROJECT_URLS[name]}/{version}/",
+                "url": f"{PROJECT_URLS[name]}/{quote(version, safe='')}/",
             }
         )
     releases.sort(key=lambda item: item["uploaded"], reverse=True)
     return {
         "url": url,
         "available": True,
-        "latest": str(latest),
+        "latest": latest,
         "releases": releases[:5],
         "error": None,
     }
@@ -143,7 +176,15 @@ def fetch_index(
         try:
             payload = fetch(index_url, timeout)
             return _parse_index_payload(name, index_url, payload)
-        except (OSError, URLError, ValueError, KeyError, TypeError) as error:
+        except (
+            OSError,
+            URLError,
+            ValueError,
+            KeyError,
+            TypeError,
+            AttributeError,
+            http.client.HTTPException,
+        ) as error:
             last_error = error
             if attempt < retries:
                 sleep(float(attempt + 1))
@@ -255,12 +296,24 @@ def validate_metadata(metadata: dict[str, Any]) -> None:
             raise ValueError(f"relation {key!r} has an invalid value")
 
 
+def _escape_cell(value: object) -> str:
+    text = " ".join(str(value).splitlines())
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("|", "\\|")
+        .replace("`", "\\`")
+    )
+
+
 def _render_branch_row(
     name: str, branch: dict[str, Any]
 ) -> str:
     if branch.get("available") and branch.get("version"):
-        return f"| `{name}` | `{branch['version']}` | available |"
-    error = branch.get("error") or "not available"
+        version = _escape_cell(branch["version"])
+        return f"| `{name}` | `{version}` | available |"
+    error = _escape_cell(branch.get("error") or "not available")
     return f"| `{name}` | unavailable | {error} |"
 
 
@@ -272,7 +325,7 @@ def _render_index(name: str, index: dict[str, Any]) -> list[str]:
         lines.append(f"Data unavailable: {error}. The next build retries.")
         lines.append("")
         return lines
-    lines.append(f"Latest release: `{index['latest']}`")
+    lines.append(f"Latest release: `{_escape_cell(index['latest'])}`")
     lines.append("")
     releases = index.get("releases", [])
     if not releases:
@@ -286,9 +339,10 @@ def _render_index(name: str, index: dict[str, Any]) -> list[str]:
         ]
     )
     for release in releases:
-        uploaded = release["uploaded"][:10]
+        version = _escape_cell(release["version"])
+        uploaded = _escape_cell(str(release["uploaded"])[:10])
         lines.append(
-            f"| `{release['version']}` | {uploaded} | "
+            f"| `{version}` | {uploaded} | "
             f"[project]({release['url']}) |"
         )
     lines.append("")

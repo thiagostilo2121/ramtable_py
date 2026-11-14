@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import importlib.util
 import json
 from pathlib import Path
@@ -58,6 +59,18 @@ def test_read_branch_versions_records_a_missing_branch() -> None:
     assert result["test_pypi"]["available"] is False
     assert result["test_pypi"]["version"] is None
     assert "missing branch" in result["test_pypi"]["error"]
+
+
+def test_read_branch_versions_rejects_an_invalid_version() -> None:
+    def git_show(ref: str) -> str:
+        return '[project]\nversion = "0.1.0<img src=x>"\n'
+
+    result = grm.read_branch_versions(git_show=git_show)
+
+    for branch in ("main", "dev", "test_pypi"):
+        assert result[branch]["available"] is False
+        assert result[branch]["version"] is None
+        assert "invalid" in result[branch]["error"].lower()
 
 
 def test_fetch_index_sorts_releases_and_limits_history() -> None:
@@ -119,6 +132,28 @@ def test_fetch_index_retries_then_reports_an_error() -> None:
     assert result["latest"] is None
     assert result["releases"] == []
     assert "index offline" in result["error"]
+
+
+def test_fetch_index_reports_http_exceptions() -> None:
+    def fetch(url: str, timeout: int) -> bytes:
+        raise http.client.IncompleteRead(b"")
+
+    result = grm.fetch_index("pypi", fetch=fetch, sleep=lambda _: None)
+
+    assert result["available"] is False
+    assert "IncompleteRead" in result["error"]
+
+
+def test_fetch_index_reports_a_malformed_payload() -> None:
+    payload = {"info": {"version": "0.4.1"}, "releases": []}
+
+    def fetch(url: str, timeout: int) -> bytes:
+        return json.dumps(payload).encode("utf-8")
+
+    result = grm.fetch_index("pypi", fetch=fetch, sleep=lambda _: None)
+
+    assert result["available"] is False
+    assert "releases" in result["error"].lower()
 
 
 def test_build_metadata_compares_versions() -> None:
@@ -190,6 +225,60 @@ def test_build_metadata_marks_relations_unavailable() -> None:
 def test_validate_metadata_rejects_missing_sections() -> None:
     with pytest.raises(ValueError):
         grm.validate_metadata({})
+
+
+def test_render_markdown_escapes_untrusted_text() -> None:
+    metadata = {
+        "generated_at": "2026-11-14T00:00:00Z",
+        "branches": {
+            "main": {
+                "ref": "origin/main",
+                "version": "0.4.1",
+                "available": True,
+                "error": None,
+            },
+            "dev": {
+                "ref": "origin/dev",
+                "version": "0.5.0dev0",
+                "available": True,
+                "error": None,
+            },
+            "test_pypi": {
+                "ref": "origin/test_pypi",
+                "version": None,
+                "available": False,
+                "error": "<img src=x>|line one\nline two",
+            },
+        },
+        "indexes": {
+            "pypi": {
+                "url": "https://pypi.org/project/ramtable/",
+                "available": False,
+                "latest": None,
+                "releases": [],
+                "error": "offline",
+            },
+            "test_pypi": {
+                "url": "https://test.pypi.org/project/ramtable/",
+                "available": False,
+                "latest": None,
+                "releases": [],
+                "error": "offline",
+            },
+        },
+        "relations": {
+            "main_vs_pypi": "unavailable",
+            "test_pypi_vs_test_pypi": "unavailable",
+            "dev_vs_main": "ahead",
+        },
+    }
+
+    markdown = grm.render_markdown(metadata)
+
+    assert "<img" not in markdown
+    assert "&lt;img src=x&gt;" in markdown
+    assert "line one line two" in markdown
+    assert "\\|" in markdown
 
 
 def test_write_outputs_writes_json_and_markdown(tmp_path: Path) -> None:
@@ -332,6 +421,39 @@ def test_main_exits_nonzero_when_output_cannot_be_written(
         raise OSError("disk full")
 
     monkeypatch.setattr(grm, "write_outputs", fail_write)
+
+    exit_code = grm.main(
+        [
+            "--json",
+            str(tmp_path / "metadata.json"),
+            "--markdown",
+            str(tmp_path / "metadata.md"),
+        ]
+    )
+
+    assert exit_code == 1
+
+
+def test_main_exits_nonzero_on_schema_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(grm, "read_branch_versions", lambda: {})
+    monkeypatch.setattr(
+        grm,
+        "fetch_index",
+        lambda name, url=None: {
+            "url": url or "",
+            "available": False,
+            "latest": None,
+            "releases": [],
+            "error": "offline",
+        },
+    )
+
+    def fail_validate(metadata, json_path, markdown_path) -> None:
+        raise ValueError("invalid schema")
+
+    monkeypatch.setattr(grm, "write_outputs", fail_validate)
 
     exit_code = grm.main(
         [
