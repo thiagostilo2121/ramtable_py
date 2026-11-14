@@ -2,6 +2,7 @@
 
 import pytest
 
+import ramtable.columns as columns_module
 from ramtable import Table
 
 
@@ -385,3 +386,504 @@ def test_remove_does_not_apply_insert_defaults():
 
     with pytest.raises(ValueError, match="Missing columns"):
         table.rows.remove({"id": 1})
+
+
+def test_add_default_applies_to_future_inserts_on_empty_table():
+    table = Table("items", {"id": int})
+
+    table.columns.add("status", str, default="pending")
+    table.rows.insert({"id": 1})
+
+    assert table.rows.get_one(0) == {"id": 1, "status": "pending"}
+
+
+def test_add_fill_value_and_default_stay_independent():
+    table = Table("items", {"id": int})
+    table.rows.insert({"id": 1})
+
+    table.columns.add(
+        "status",
+        str,
+        fill_value="legacy",
+        default="pending",
+    )
+
+    assert table.rows.get_one(0) == {"id": 1, "status": "legacy"}
+
+    table.rows.insert({"id": 2})
+
+    assert table.rows.get_one(1) == {"id": 2, "status": "pending"}
+
+
+def test_add_on_empty_table_uses_the_default_not_the_fill_value():
+    table = Table("items", {"id": int})
+
+    table.columns.add(
+        "status",
+        str,
+        fill_value="legacy",
+        default="pending",
+    )
+    table.rows.insert({"id": 1})
+
+    assert table.rows.get_one(0) == {"id": 1, "status": "pending"}
+
+
+def test_add_default_is_keyword_only():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(TypeError, match="positional"):
+        table.columns.add("status", str, "legacy", "pending")
+
+    assert "status" not in table.columns
+
+
+def test_add_default_does_not_replace_a_required_fill_value():
+    table = Table("items", {"id": int})
+    table.rows.insert({"id": 1})
+    rows_before = table.rows.get_all()
+
+    with pytest.raises(ValueError, match="fill value is required"):
+        table.columns.add("status", str, default="pending")
+
+    assert "status" not in table.columns
+    assert table.rows.get_all() == rows_before
+
+
+def test_add_rejects_default_that_does_not_match_the_column_type():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'status'",
+    ):
+        table.columns.add("status", int, default="pending")
+
+    assert "status" not in table.columns
+
+
+def test_add_default_is_deep_copied_for_each_inserted_row():
+    default = ["new"]
+    table = Table("items", {"id": int})
+    table.columns.add("tags", list[str], default=default)
+
+    table.rows.insert({"id": 1})
+    table.rows.insert({"id": 2})
+    table.rows.get_one(0)["tags"].append("changed")
+
+    assert table.rows.get_one(1)["tags"] == ["new"]
+    assert table.columns.get_default("tags") == ["new"]
+    assert default == ["new"]
+
+
+def test_add_accepts_a_none_default_for_an_optional_type():
+    table = Table("items", {"id": int})
+
+    table.columns.add("note", str | None, default=None)
+    table.rows.insert({"id": 1})
+
+    assert table.rows.get_one(0) == {"id": 1, "note": None}
+
+
+def test_add_without_a_default_does_not_create_one():
+    table = Table("items", {"id": int})
+
+    table.columns.add("status", str)
+
+    with pytest.raises(ValueError, match="does not have a default"):
+        table.columns.get_default("status")
+
+
+def test_add_non_copyable_default_leaves_the_table_unchanged():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'value' cannot be deep-copied",
+    ):
+        table.columns.add("value", object, default=_NotCopyable())
+
+    assert "value" not in table.columns
+    assert table.rows.get_all() == []
+
+
+def test_add_non_copyable_default_with_rows_is_atomic():
+    table = Table("items", {"id": int})
+    table.rows.insert({"id": 1})
+    rows_before = table.rows.get_all()
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'value' cannot be deep-copied",
+    ):
+        table.columns.add(
+            "value",
+            object,
+            fill_value="legacy",
+            default=_NotCopyable(),
+        )
+
+    assert "value" not in table.columns
+    assert table.rows.get_all() == rows_before
+
+
+def test_add_invalid_default_with_rows_is_atomic():
+    table = Table("items", {"id": int})
+    table.rows.insert({"id": 1})
+    rows_before = table.rows.get_all()
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'status'",
+    ):
+        table.columns.add(
+            "status",
+            int,
+            fill_value=0,
+            default="pending",
+        )
+
+    assert "status" not in table.columns
+    assert table.rows.get_all() == rows_before
+
+
+def test_add_non_copyable_fill_value_leaves_the_table_unchanged():
+    table = Table("items", {"id": int})
+    table.rows.insert({"id": 1})
+    rows_before = table.rows.get_all()
+
+    with pytest.raises(
+        TypeError,
+        match="Fill value cannot be deep-copied",
+    ):
+        table.columns.add(
+            "value",
+            object,
+            fill_value=_NotCopyable(),
+        )
+
+    assert "value" not in table.columns
+    assert table.rows.get_all() == rows_before
+
+
+def test_set_default_applies_to_future_inserts():
+    table = Table("items", {"id": int, "status": str})
+    table.rows.insert({"id": 1, "status": "done"})
+
+    table.columns.set_default("status", "pending")
+    table.rows.insert({"id": 2})
+
+    assert table.rows.get_one(0) == {"id": 1, "status": "done"}
+    assert table.rows.get_one(1) == {"id": 2, "status": "pending"}
+
+
+def test_set_default_replaces_an_existing_default():
+    table = Table(
+        "items",
+        {"status": str},
+        defaults={"status": "old"},
+    )
+
+    table.columns.set_default("status", "new")
+
+    assert table.columns.get_default("status") == "new"
+
+    table.rows.insert({})
+
+    assert table.rows.get_one(0) == {"status": "new"}
+
+
+def test_set_default_deep_copies_a_mutable_value():
+    default = ["new"]
+    table = Table("items", {"tags": list[str]})
+
+    table.columns.set_default("tags", default)
+    default.append("changed")
+
+    returned = table.columns.get_default("tags")
+    returned.append("changed again")
+
+    table.rows.insert({})
+
+    assert table.rows.get_one(0) == {"tags": ["new"]}
+    assert table.columns.get_default("tags") == ["new"]
+
+
+def test_set_default_accepts_none_for_an_optional_type():
+    table = Table("items", {"note": str | None})
+
+    table.columns.set_default("note", None)
+    table.rows.insert({})
+
+    assert table.rows.get_one(0) == {"note": None}
+
+
+def test_set_default_rejects_an_unknown_column():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(ValueError, match="does not exist"):
+        table.columns.set_default("missing", 1)
+
+
+def test_set_default_rejects_a_value_incompatible_with_the_type():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'id'",
+    ):
+        table.columns.set_default("id", "1")
+
+    with pytest.raises(ValueError, match="does not have a default"):
+        table.columns.get_default("id")
+
+
+def test_set_default_is_atomic_when_copying_fails():
+    table = Table(
+        "items",
+        {"value": object},
+        defaults={"value": "old"},
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'value' cannot be deep-copied",
+    ):
+        table.columns.set_default("value", _NotCopyable())
+
+    assert table.columns.get_default("value") == "old"
+
+
+def test_remove_default_removes_it_from_future_inserts():
+    table = Table(
+        "items",
+        {"id": int, "status": str},
+        defaults={"status": "pending"},
+    )
+
+    table.columns.remove_default("status")
+
+    with pytest.raises(ValueError, match="does not have a default"):
+        table.columns.get_default("status")
+
+    with pytest.raises(ValueError, match="Missing columns"):
+        table.rows.insert({"id": 1})
+
+    assert table.columns.get("status") is str
+
+
+def test_remove_default_rejects_an_unknown_column():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(ValueError, match="does not exist"):
+        table.columns.remove_default("missing")
+
+
+def test_remove_default_rejects_a_column_without_a_default():
+    table = Table("items", {"id": int})
+
+    with pytest.raises(ValueError, match="does not have a default"):
+        table.columns.remove_default("id")
+
+
+def test_get_defaults_returns_every_default():
+    table = Table(
+        "items",
+        {"id": int, "name": str, "active": bool},
+        defaults={"name": "unknown", "active": True},
+    )
+
+    assert table.columns.get_defaults() == {
+        "name": "unknown",
+        "active": True,
+    }
+
+
+def test_get_defaults_returns_an_empty_dictionary_without_defaults():
+    table = Table("items", {"id": int})
+
+    assert table.columns.get_defaults() == {}
+
+
+def test_get_defaults_deep_copies_nested_values():
+    default = [{"values": [1]}]
+    table = Table(
+        "items",
+        {"items": list[dict[str, list[int]]]},
+        defaults={"items": default},
+    )
+
+    defaults = table.columns.get_defaults()
+    defaults["items"][0]["values"].append(2)
+
+    assert table.columns.get_defaults() == {
+        "items": [{"values": [1]}]
+    }
+    assert default == [{"values": [1]}]
+
+
+def test_get_defaults_returns_a_new_dictionary():
+    table = Table("items", {"name": str}, defaults={"name": "unknown"})
+
+    defaults = table.columns.get_defaults()
+    defaults["extra"] = "value"
+
+    assert "extra" not in table.columns.get_defaults()
+
+
+def test_set_default_does_not_replace_values_in_existing_rows():
+    table = Table("items", {"id": int, "status": str})
+    table.rows.insert({"id": 1, "status": "done"})
+
+    table.columns.set_default("status", "pending")
+
+    assert table.rows.get_one(0) == {"id": 1, "status": "done"}
+
+
+def test_remove_column_drops_a_default_set_after_creation():
+    table = Table("items", {"id": int, "status": str})
+    table.columns.set_default("status", "pending")
+
+    table.columns.remove("status")
+
+    with pytest.raises(ValueError, match="does not exist"):
+        table.columns.get_default("status")
+
+    table.columns.add("status", str)
+
+    with pytest.raises(ValueError, match="does not have a default"):
+        table.columns.get_default("status")
+
+
+def test_update_revalidates_a_default_set_after_creation():
+    table = Table("items", {"id": int})
+    table.columns.set_default("id", 0)
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'id'",
+    ):
+        table.columns.update("id", str)
+
+    assert table.columns.get("id") is int
+    assert table.columns.get_default("id") == 0
+
+
+def test_update_keeps_a_compatible_default():
+    table = Table("items", {"id": int})
+    table.columns.set_default("id", 0)
+
+    table.columns.update("id", int | str)
+
+    assert table.columns.get_default("id") == 0
+    table.rows.insert({})
+    assert table.rows.get_one(0) == {"id": 0}
+
+
+def test_clear_preserves_a_default_set_after_creation():
+    table = Table("items", {"status": str})
+    table.columns.set_default("status", "pending")
+    table.rows.insert({})
+
+    table.clear()
+    table.rows.insert({})
+
+    assert table.rows.get_one(0) == {"status": "pending"}
+    assert table.columns.get_default("status") == "pending"
+
+
+def test_insert_does_not_copy_defaults_for_provided_columns(
+    monkeypatch,
+):
+    table = Table(
+        "items",
+        {"tags": list[str]},
+        defaults={"tags": ["default"]},
+    )
+    copied = []
+    real_deepcopy = columns_module.deepcopy
+
+    def tracking_deepcopy(value):
+        copied.append(value)
+        return real_deepcopy(value)
+
+    monkeypatch.setattr(
+        columns_module,
+        "deepcopy",
+        tracking_deepcopy,
+    )
+
+    table.rows.insert({"tags": ["explicit"]})
+
+    assert copied == []
+
+
+def test_insert_copies_defaults_only_for_omitted_columns(monkeypatch):
+    table = Table(
+        "items",
+        {"id": int, "tags": list[str]},
+        defaults={"tags": ["default"]},
+    )
+    copied = []
+    real_deepcopy = columns_module.deepcopy
+
+    def tracking_deepcopy(value):
+        copied.append(value)
+        return real_deepcopy(value)
+
+    monkeypatch.setattr(
+        columns_module,
+        "deepcopy",
+        tracking_deepcopy,
+    )
+
+    table.rows.insert({"id": 1})
+
+    assert copied == [["default"]]
+    assert table.rows.get_one(0) == {"id": 1, "tags": ["default"]}
+
+
+def test_get_default_reports_a_copy_failure(monkeypatch):
+    table = Table(
+        "items",
+        {"value": object},
+        defaults={"value": "old"},
+    )
+
+    def failing_deepcopy(value):
+        raise TypeError("cannot copy")
+
+    monkeypatch.setattr(
+        columns_module,
+        "deepcopy",
+        failing_deepcopy,
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'value' cannot be deep-copied",
+    ):
+        table.columns.get_default("value")
+
+
+def test_get_defaults_reports_a_copy_failure(monkeypatch):
+    table = Table(
+        "items",
+        {"value": object},
+        defaults={"value": "old"},
+    )
+
+    def failing_deepcopy(value):
+        raise TypeError("cannot copy")
+
+    monkeypatch.setattr(
+        columns_module,
+        "deepcopy",
+        failing_deepcopy,
+    )
+
+    with pytest.raises(
+        TypeError,
+        match="Default value for column 'value' cannot be deep-copied",
+    ):
+        table.columns.get_defaults()

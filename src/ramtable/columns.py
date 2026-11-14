@@ -14,7 +14,8 @@ class Columns:
 
     The instance keeps a copy of the supplied schema and shares its owning
     table's row storage so schema changes remain consistent with existing
-    records.
+    records. ``Table`` creates the instance and exposes it as
+    ``table.columns``.
     """
 
     def __init__(
@@ -59,24 +60,36 @@ class Columns:
                     f"Default value provided for unknown column '{name}'."
                 )
 
-            if not TypeValidator.matches_type(
-                value, self._columns[name]
-            ):
-                raise TypeError(
-                    f"Default value for column '{name}' does not match "
-                    f"{self._columns[name]!r}."
-                )
+            self._validate_default(name, value, self._columns[name])
 
         self._defaults: dict[str, Any] = {}
 
         for name, value in defaults.items():
-            try:
-                self._defaults[name] = deepcopy(value)
-            except Exception as error:
-                raise TypeError(
-                    f"Default value for column '{name}' "
-                    "cannot be deep-copied."
-                ) from error
+            self._defaults[name] = self._copy_default(name, value)
+
+    @staticmethod
+    def _validate_default(
+        name: str,
+        value: Any,
+        column_type: Any,
+    ) -> None:
+        """Reject a default that does not match its column's annotation."""
+        if not TypeValidator.matches_type(value, column_type):
+            raise TypeError(
+                f"Default value for column '{name}' does not match "
+                f"{column_type!r}."
+            )
+
+    @staticmethod
+    def _copy_default(name: str, value: Any) -> Any:
+        """Return a deep copy of a default or raise a descriptive error."""
+        try:
+            return deepcopy(value)
+        except Exception as error:
+            raise TypeError(
+                f"Default value for column '{name}' "
+                "cannot be deep-copied."
+            ) from error
 
     @staticmethod
     def _validate_name(name: str) -> None:
@@ -97,24 +110,40 @@ class Columns:
         name: str,
         column_type: Any,
         fill_value: Any = _MISSING,
+        *,
+        default: Any = _MISSING,
     ) -> None:
         """Add a column and initialize existing rows when necessary.
 
         If records already exist, ``fill_value`` is required. A deep copy of
         the value is created for each record so mutable values are not shared
         between rows. If there are no rows, an optional fill value is not
-        stored and does not become an insert default.
+        stored.
+
+        ``default`` is independent of ``fill_value``: it supplies the value
+        used by future inserts that omit the column. It is validated and
+        deep-copied even when the table is empty.
+
+        The ``_MISSING`` defaults in the signature are an internal sentinel.
+        Omit ``fill_value`` or ``default`` to mean "no value"; passing the
+        sentinel directly is not supported.
+
+        RAMTable validates and prepares both values before changing the
+        schema or any record. If validation or copying fails, the table is
+        unchanged.
 
         Args:
             name: Column name.
             column_type: Supported type annotation.
             fill_value: Value assigned to existing rows when the table is
                 not empty.
+            default: Optional insert default for future rows. Keyword-only.
 
         Raises:
             ValueError: If the name is empty, already exists, or a required
                 fill value is missing.
-            TypeError: If the type or fill value is invalid.
+            TypeError: If the type, fill value, or default is invalid, or a
+                value cannot be deep-copied.
         """
 
         self._validate_name(name)
@@ -137,20 +166,35 @@ class Columns:
                 f"Fill value does not match {column_type!r}."
             )
 
+        default_copy = _MISSING
+
+        if default is not _MISSING:
+            self._validate_default(name, default, column_type)
+            default_copy = self._copy_default(name, default)
+
         # Prepare all fill values before changing the table.
         # This prevents partial updates if copying fails.
         if self._rows_storage:
-            fill_values = [
-                deepcopy(fill_value) for _ in self._rows_storage
-            ]
+            try:
+                fill_values = [
+                    deepcopy(fill_value)
+                    for _ in self._rows_storage
+                ]
+            except Exception as error:
+                raise TypeError(
+                    "Fill value cannot be deep-copied."
+                ) from error
 
             for row, value in zip(self._rows_storage, fill_values):
                 row[name] = value
 
         self._columns[name] = column_type
 
+        if default_copy is not _MISSING:
+            self._defaults[name] = default_copy
+
     def remove(self, name: str) -> None:
-        """Remove a column from the schema and all records.
+        """Remove a column, its default, and every matching cell.
 
         Raises:
             ValueError: If the column does not exist or is the last column.
@@ -218,8 +262,34 @@ class Columns:
 
         return self._columns[name]
 
-    def get_default(self, name: str) -> Any:
-        """Return a deep copy of a column's insert default.
+    def set_default(self, name: str, value: Any) -> None:
+        """Set or replace a column's insert default.
+
+        The value is validated against the column's declared type and stored
+        as a deep copy. Future inserts that omit the column use it. If
+        validation or copying fails, the previous default stays.
+
+        Args:
+            name: Existing column name.
+            value: Value to use when an inserted row omits the column.
+
+        Raises:
+            ValueError: If the column does not exist.
+            TypeError: If the value does not match the column type or cannot
+                be deep-copied.
+        """
+
+        if name not in self._columns:
+            raise ValueError(f"Column '{name}' does not exist.")
+
+        self._validate_default(name, value, self._columns[name])
+        copied = self._copy_default(name, value)
+        self._defaults[name] = copied
+
+    def remove_default(self, name: str) -> None:
+        """Remove a column's insert default.
+
+        Future inserts must provide the column explicitly.
 
         Raises:
             ValueError: If the column does not exist or has no default.
@@ -233,16 +303,54 @@ class Columns:
                 f"Column '{name}' does not have a default value."
             )
 
-        return deepcopy(self._defaults[name])
+        del self._defaults[name]
+
+    def get_default(self, name: str) -> Any:
+        """Return a deep copy of a column's insert default.
+
+        Raises:
+            ValueError: If the column does not exist or has no default.
+            TypeError: If the stored default cannot be deep-copied.
+        """
+
+        if name not in self._columns:
+            raise ValueError(f"Column '{name}' does not exist.")
+
+        if name not in self._defaults:
+            raise ValueError(
+                f"Column '{name}' does not have a default value."
+            )
+
+        return self._copy_default(name, self._defaults[name])
+
+    def get_defaults(self) -> dict[str, Any]:
+        """Return deep copies of every insert default.
+
+        Returns:
+            New dictionary mapping column names to default values.
+
+        Raises:
+            TypeError: If a stored default cannot be deep-copied.
+        """
+
+        return {
+            name: self._copy_default(name, value)
+            for name, value in self._defaults.items()
+        }
 
     def get_all(self) -> dict[str, Any]:
         """Return a shallow copy of the complete schema."""
         return self._columns.copy()
 
-    def _insert_defaults(self) -> dict[str, Any]:
-        """Return deep copies of the defaults used for omitted columns."""
+    def _insert_defaults(
+        self,
+        provided: set[str],
+    ) -> dict[str, Any]:
+        """Return deep copies of defaults for columns not in ``provided``."""
         return {
-            name: deepcopy(value) for name, value in self._defaults.items()
+            name: self._copy_default(name, value)
+            for name, value in self._defaults.items()
+            if name not in provided
         }
 
     def __contains__(self, name: str) -> bool:

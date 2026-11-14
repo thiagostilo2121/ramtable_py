@@ -3,6 +3,42 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.5.0]
+
+Completes insert-default management after table creation and adds the
+documentation site.
+
+### Added
+
+- `Columns.add()` accepts `default` for future inserts while `fill_value`
+  keeps initializing existing rows. The two values are independent, and a
+  fill value is still required when rows exist.
+- `Columns.set_default()` sets or replaces a column's insert default, and
+  `Columns.remove_default()` clears it.
+- `Columns.get_defaults()` returns deep copies of every insert default.
+- Documentation site built with Zensical, with an installation page, user
+  guide, API reference generated from docstrings, and project pages.
+- Executable documentation examples, also run against the built wheel in
+  continuous integration.
+- Releases page with branch and package-index metadata generated during the
+  documentation build.
+- Documentation workflows that build pull requests to `main`, deploy from
+  `main`, and refresh the site when a release branch changes its version.
+
+### Changed
+
+- `Columns.get_default()` and `get_defaults()` raise a descriptive
+  `TypeError` when deep-copying fails.
+- `Columns.add()` raises a descriptive `TypeError` when a fill value cannot
+  be deep-copied.
+- `Rows.insert()` copies defaults only for columns the row omits.
+- `Table.clear()` and `Rows.clear()` now document that they preserve insert
+  defaults.
+- `README.md` covers installation, a short example, and a link to the site;
+  the details moved under `docs/`.
+- `AGENTS.md` and `CONTRIBUTING.md` document the documentation paths, build
+  commands, and generated files.
+
 ## [0.4.1]
 
 Reviews the README and documentation, corrects guide examples, and updates

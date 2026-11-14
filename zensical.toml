@@ -1,0 +1,67 @@
+[project]
+site_name = "RAMTable"
+site_url = "https://thiagostilo2121.github.io/ramtable_py/"
+docs_dir = "docs"
+site_dir = "site"
+extra_css = ["stylesheets/extra.css"]
+nav = [
+  { "Home" = "index.md" },
+  { "Installation" = "guide/installation.md" },
+  { "Guide" = "guide/index.md" },
+  { "Reference" = [
+    { "Overview" = "reference/index.md" },
+    { "API" = [
+      { "Table" = "reference/api/table.md" },
+      { "Columns" = "reference/api/columns.md" },
+      { "Rows" = "reference/api/rows.md" },
+      { "TypeValidator" = "reference/api/types.md" },
+    ] },
+    { "Types and validation" = "reference/types-and-validation.md" },
+  ] },
+  { "Project" = [
+    { "Development" = "project/development.md" },
+    { "Releases" = "project/releases.md" },
+    { "Changelog" = "project/changelog.md" },
+    { "Contributing" = "project/contributing.md" },
+    { "License" = "project/license.md" },
+  ] },
+]
+
+[project.theme]
+variant = "modern"
+language = "en"
+font = false
+features = [
+  "navigation.path",
+  "navigation.tracking",
+  "content.code.copy",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.pymdownx.snippets]
+base_path = ["."]
+restrict_base_path = true
+
+[project.plugins.markdown-exec]
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+options.docstring_style = "google"
+options.show_source = false
+options.show_root_heading = true
+options.filters = ["!^_(?!_)"]
