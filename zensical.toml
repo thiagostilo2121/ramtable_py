@@ -18,7 +18,8 @@ nav = [
     { "Types and validation" = "reference/types-and-validation.md" },
   ] },
   { "Project" = [
-    { "Development and releases" = "project/development.md" },
+    { "Development" = "project/development.md" },
+    { "Releases" = "project/releases.md" },
     { "Changelog" = "project/changelog.md" },
     { "Contributing" = "project/contributing.md" },
     { "License" = "project/license.md" },

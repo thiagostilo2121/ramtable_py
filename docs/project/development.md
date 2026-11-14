@@ -7,6 +7,8 @@ the RAMTable API.
 
 - [Project layout](#project-layout)
 - [Set up a local environment](#set-up-a-local-environment)
+- [Build the documentation](#build-the-documentation)
+- [Documentation deployment](#documentation-deployment)
 - [Build distributions](#build-distributions)
 - [Versioning](#versioning)
 - [Preparing a release](#preparing-a-release)
@@ -18,6 +20,8 @@ the RAMTable API.
 .
 ├── .github/
 │   └── workflows/
+│       ├── docs-notify.yml
+│       ├── docs.yml
 │       ├── publish-test.yml
 │       ├── publish.yml
 │       └── tests.yml
@@ -50,13 +54,15 @@ the RAMTable API.
 │   │   ├── changelog.md
 │   │   ├── contributing.md
 │   │   ├── development.md
-│   │   └── license.md
+│   │   ├── license.md
+│   │   └── releases.md
 │   ├── stylesheets/
 │   │   └── extra.css
 │   ├── index.md
 │   └── requirements.txt
 ├── scripts/
-│   └── check_built_site.py
+│   ├── check_built_site.py
+│   └── generate_release_metadata.py
 ├── examples/
 │   └── quick_start.py
 ├── tests/
@@ -71,11 +77,14 @@ the RAMTable API.
   tracked by Git.
 - `docs/`: user guide, API reference, validation rules, and project pages.
 - `docs/reference/api/`: class pages generated from the package docstrings.
-- `docs/project/`: changelog, contribution guide, release process, and
-  license. The changelog, contribution, and license pages include the
-  matching files from the repository root.
+- `docs/project/`: development guide, release policy, changelog,
+  contribution guide, and license. The changelog, contribution, and license
+  pages include the matching files from the repository root.
 - `zensical.toml`: site configuration for Zensical.
 - `scripts/check_built_site.py`: verifies links and anchors in the built site.
+- `scripts/generate_release_metadata.py`: reads the declared versions from
+  Git, queries PyPI and TestPyPI, and writes the generated files for the
+  releases page. The outputs are ignored by Git and recreated on every build.
 - `examples/quick_start.py`: the quick start shown on the site home page. The
   documentation build executes it, and continuous integration runs it against
   the built wheel.
@@ -130,12 +139,18 @@ python -m pip install -r docs/requirements.txt
 python -m pip install --editable .
 ```
 
-From the repository root, build the site in strict mode and remove previous
-output:
+From the repository root, generate the release metadata and build the site
+in strict mode:
 
 ```bash
+python scripts/generate_release_metadata.py
 zensical build --strict --clean
 ```
+
+The generator reads `pyproject.toml` from `origin/main`, `origin/dev`, and
+`origin/test_pypi`. A missing branch or an unreachable index leaves that
+entry marked unavailable; the build still succeeds. Fetch all branches
+before a local build if you want the current versions on every row.
 
 The build writes to `site/`. Verify links, anchors, and assets:
 
@@ -150,7 +165,23 @@ those links.
 GitHub Actions runs the test suite, byte-compilation, and import checks on
 every supported Python version. It also builds the wheel, installs it into a
 clean virtual environment, and runs `examples/quick_start.py`. Release pull
-requests get package validation too. Run the tests before releasing.
+requests get package validation too. The docs workflow validates pull
+requests to `main` and deploys from `main`; a notifier rebuilds the site when
+`dev` or `test_pypi` changes `pyproject.toml`. Run the tests before
+releasing.
+
+## Documentation deployment
+
+GitHub Pages serves the site from the `docs.yml` workflow. Set the Pages
+source to GitHub Actions in the repository settings. The workflow deploys
+only from `main`, and pull requests to `main` build without deploying.
+
+The daily schedule refreshes release metadata. `docs-notify.yml` dispatches
+a build from `main` when `dev` or `test_pypi` changes `pyproject.toml`. It
+does not check out or run code from those branches. The first deploy needs
+`zensical.toml` and `docs/` on `main`, so promote the documentation before
+you change the Pages source. Require the Docs check in the `main` branch
+protection rules so a broken build cannot merge.
 
 ## Build distributions
 
@@ -166,30 +197,14 @@ The build writes artifacts to `dist/`. Check that the wheel contains the
 
 ## Versioning
 
-The project follows PEP 440. Versions take one of three forms depending on
-the branch:
+`pyproject.toml` `project.version` is the only source of truth. The
+[releases page](releases.md) documents the version forms, publication
+targets, and current branch versions.
 
-| Branch | Version form | Example | Published to |
-|---|---|---|---|
-| `dev` | `X.Y.ZdevN` | `0.4.0dev0` | nothing |
-| `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.4.0rc0`, `0.4.0` | TestPyPI |
-| `main` | `X.Y.Z` | `0.4.0` | PyPI |
-
-`MAJOR.MINOR.PATCH` follows semantic versioning:
-
-- `PATCH` for compatible fixes;
-- `MINOR` for compatible functionality;
-- `MAJOR` for breaking API or behavior changes.
-
-`pyproject.toml` holds the current version. The build backend and the GitHub
-Actions workflows read it, and the installed package exposes it as
-`ramtable.__version__` through its distribution metadata. The README uses a
-dynamic PyPI badge. `CHANGELOG.md` is the only other file with version
-numbers because it records releases.
-
-Development versions are never published. TestPyPI accepts release
-candidates and stable versions, so you can test the final stable release
-there before it reaches PyPI. PyPI accepts stable versions only.
+The installed package exposes the version as `ramtable.__version__` through
+its distribution metadata. The README uses a dynamic PyPI badge.
+`CHANGELOG.md` records releases and is the only other file with version
+numbers.
 
 ## Preparing a release
 

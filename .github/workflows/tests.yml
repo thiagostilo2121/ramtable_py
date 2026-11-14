@@ -86,4 +86,5 @@ jobs:
           "$RUNNER_TEMP/quick-start/bin/python" -m pip install dist/*.whl
 
       - name: Run quick start
-        run: "$RUNNER_TEMP/quick-start/bin/python" examples/quick_start.py
+        run: |
+          "$RUNNER_TEMP/quick-start/bin/python" examples/quick_start.py
