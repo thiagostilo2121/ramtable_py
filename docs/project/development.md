@@ -41,7 +41,8 @@ the RAMTable API.
 │       └── types.py
 ├── docs/
 │   ├── guide/
-│   │   └── index.md
+│   │   ├── index.md
+│   │   └── installation.md
 │   ├── reference/
 │   │   ├── api/
 │   │   │   ├── columns.md
@@ -75,7 +76,8 @@ the RAMTable API.
 - `tests/`: pytest suite covering the public API and its behavior.
 - `my_test.py`: optional local example of basic library usage; it is not
   tracked by Git.
-- `docs/`: user guide, API reference, validation rules, and project pages.
+- `docs/`: landing page, installation steps, user guide, API reference,
+  validation rules, and project pages.
 - `docs/reference/api/`: class pages generated from the package docstrings.
 - `docs/project/`: development guide, release policy, changelog,
   contribution guide, and license. The changelog, contribution, and license

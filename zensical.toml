@@ -6,6 +6,7 @@ site_dir = "site"
 extra_css = ["stylesheets/extra.css"]
 nav = [
   { "Home" = "index.md" },
+  { "Installation" = "guide/installation.md" },
   { "Guide" = "guide/index.md" },
   { "Reference" = [
     { "Overview" = "reference/index.md" },

@@ -199,6 +199,32 @@ and `main`. Pull requests targeting `test_pypi` and `main` also run the
 release validation and build; publication happens only after a pull request is
 merged. Keep every change compatible with all supported versions.
 
+### Build the documentation
+
+The site uses Zensical. Dependencies are pinned in
+`docs/requirements.txt`; they are not part of the `dev` extra. With the
+package installed in editable mode:
+
+```bash
+python -m pip install -r docs/requirements.txt
+python scripts/generate_release_metadata.py
+zensical build --strict --clean
+python scripts/check_built_site.py
+```
+
+The build writes to `site/`. The generator reads the declared version from
+`origin/main`, `origin/dev`, and `origin/test_pypi` and queries PyPI and
+TestPyPI. A missing branch or an unreachable index leaves that entry marked
+unavailable and does not fail the build. Fetch all branches first if you want
+current data in every row.
+
+The files under `docs/_data/` and `docs/_generated/` are generated and ignored
+by Git. Do not commit them. Add new pages to the `nav` list in
+`zensical.toml`.
+
+Pull requests to `main` build the site and run the link checker. The docs
+workflow deploys only from `main`.
+
 ### What to test
 
 - **Bug fixes:** include a regression test that fails before the fix and
@@ -231,9 +257,12 @@ Follow the style and structure already used in `src/ramtable`:
 When behavior changes, update the relevant documentation in `docs/`:
 
 - `docs/guide/index.md` for user-facing workflows;
+- `docs/guide/installation.md` for install steps;
 - the docstrings in `src/ramtable/` for signatures, arguments, returns, and
   exceptions, rendered in `docs/reference/api/`;
 - `docs/reference/types-and-validation.md` for validation rules.
+
+Update the site navigation in `zensical.toml` when you add or move a page.
 
 The repository history uses Conventional Commits-style messages, such as
 `fix: ...`, `docs: ...`, and `feat: ...`. Following that style is appreciated,
