@@ -3,6 +3,14 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.5.1dev0]
+
+Updates site palette to brown brand color.
+
+### Changed
+
+- Documentation site palette updated from green to brown color.
+
 ## [0.5.0]
 
 Completes insert-default management after table creation and adds the
