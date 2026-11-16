@@ -1,6 +1,6 @@
 """Public RAMTable API.
 
-Expose ``Columns``, ``Rows``, and ``Table`` from the
+Expose ``Columns``, ``Rows``, ``Table``, and ``TypeValidator`` from the
 ``ramtable`` package as a concise, stable import path, along with the
 installed package version.
 """
@@ -10,6 +10,7 @@ from importlib.metadata import PackageNotFoundError, version
 from .columns import Columns
 from .rows import Rows
 from .table import Table
+from .types import TypeValidator
 
 try:
     __version__ = version("ramtable")
@@ -21,4 +22,5 @@ __all__ = [
     "Columns",
     "Rows",
     "Table",
+    "TypeValidator",
 ]
