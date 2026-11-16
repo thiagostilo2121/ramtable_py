@@ -16,6 +16,11 @@ def test_public_classes_are_exported():
     assert ramtable.Table is Table
 
 
+def test_internal_sentinel_is_not_exported():
+    assert not hasattr(ramtable, "_MISSING")
+    assert "_MISSING" not in ramtable.__all__
+
+
 def test_public_version_is_a_non_empty_string():
     assert isinstance(ramtable.__version__, str)
     assert ramtable.__version__

@@ -1,8 +1,10 @@
 """Tests for the public ``Columns`` schema view."""
 
+import inspect
+
 import pytest
 
-from ramtable import Table
+from ramtable import Columns, Table
 
 
 def test_get_and_get_all_return_the_schema(people_table):
@@ -127,6 +129,16 @@ def test_add_rejects_duplicate_column_name(empty_table):
 def test_add_rejects_unsupported_annotation(empty_table):
     with pytest.raises(TypeError, match="Unsupported column type"):
         empty_table.columns.add("bad", list[int, str])
+
+
+def test_add_signature_keeps_default_keyword_only():
+    parameters = inspect.signature(Columns.add).parameters
+
+    assert (
+        parameters["fill_value"].kind
+        is inspect.Parameter.POSITIONAL_OR_KEYWORD
+    )
+    assert parameters["default"].kind is inspect.Parameter.KEYWORD_ONLY
 
 
 def test_add_appends_columns_in_order(empty_table):

@@ -3,6 +3,23 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.5.1]
+
+Updates site palette to brown brand color. Consolidates documentation and
+contract coverage without changing behavior.
+
+### Added
+
+- Canonical errors reference page listing each exception, its causes, and
+  the methods that raise it.
+- Copy-contract tests that pin shallow row copies and deep copies for fill
+  values and insert defaults.
+
+### Changed
+
+- Documentation site palette updated from green to brown color.
+- `Columns.add` marks `default` as keyword-only.
+
 ## [0.5.0]
 
 Completes insert-default management after table creation and adds the
