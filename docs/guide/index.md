@@ -115,6 +115,25 @@ print(len(inventory.rows))
 - The table stores a shallow copy of the dictionary you pass in.
 - Values need not be unique, and no column acts as a primary key.
 
+To insert several rows with one call, use `insert_many()`:
+
+```python exec="on" session="guide" source="above" result="text"
+restock = Table("restock", {"code": str, "quantity": int})
+
+inserted = restock.rows.insert_many(
+    [
+        {"code": "E-5", "quantity": 8},
+        {"code": "F-6", "quantity": 2},
+    ]
+)
+print(inserted)
+```
+
+`insert_many()` accepts any iterable of dictionaries and returns how many
+rows it inserted. It validates every row before storing any of them, so a
+bad row leaves the table unchanged. Insert defaults apply to each row, with
+a separate deep copy per row.
+
 Validation follows the rules described in
 [types and validation](../reference/types-and-validation.md).
 
@@ -129,9 +148,10 @@ first = inventory.rows.get_one(0)
 last = inventory.rows.get_one(-1)      # negative indexes, as in lists
 first_and_last = inventory.rows.get(0, -1)
 every_row = inventory.rows.get()       # no arguments: all rows
+every_row = inventory.rows.get_all()   # same as get()
 ```
 
-- `get()` without arguments is equivalent to retrieving all rows.
+- `get()` without arguments returns every row; `get_all()` is its alias.
 - With indexes, `get()` returns the rows at those positions, preserving the
   requested order; repeats are allowed.
 - Negative indexes behave as they do for Python lists.
@@ -306,6 +326,20 @@ nothing matches).
 > [!NOTE]
 > `remove()` targets a single row by its full content; `delete()` targets
 > every row that matches a condition.
+
+To remove a row by position, use `pop(index)`:
+
+```python exec="on" session="guide" source="above" result="text"
+queue = Table("queue", {"id": int})
+queue.rows.insert_many([{"id": 1}, {"id": 2}])
+
+removed = queue.rows.pop(-1)
+print(removed, len(queue.rows))
+```
+
+`pop()` accepts negative indexes and returns the removed row as a shallow
+copy. It rejects boolean indexes, and an out-of-range index raises
+`IndexError`.
 
 To remove all records:
 
