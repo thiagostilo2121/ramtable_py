@@ -17,6 +17,7 @@ nav = [
       { "TypeValidator" = "reference/api/types.md" },
     ] },
     { "Types and validation" = "reference/types-and-validation.md" },
+    { "Errors" = "reference/errors.md" },
   ] },
   { "Project" = [
     { "Development" = "project/development.md" },
