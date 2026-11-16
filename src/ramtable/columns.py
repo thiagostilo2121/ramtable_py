@@ -124,9 +124,9 @@ class Columns:
         used by future inserts that omit the column. It is validated and
         deep-copied even when the table is empty.
 
-        The ``_MISSING`` defaults in the signature are an internal sentinel.
-        Omit ``fill_value`` or ``default`` to mean "no value"; passing the
-        sentinel directly is not supported.
+        The ``_MISSING`` sentinel in the signature is internal. It is not
+        part of the public API. Omit ``fill_value`` or ``default`` to mean
+        "no value"; passing the sentinel directly is not supported.
 
         RAMTable validates and prepares both values before changing the
         schema or any record. If validation or copying fails, the table is

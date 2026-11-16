@@ -462,14 +462,14 @@ each time a row omits the column, and when `get_default()` or
 
 ## 10. Errors reference
 
-| Exception | Raised for |
-|---|---|
-| `ValueError` | Invalid table or column name, empty schema, non-existent column, a default for an unknown column, row with missing or extra columns, empty update or filter arguments, unknown filter operator, or row not found during removal. |
-| `TypeError` | Unsupported annotation, non-dictionary defaults or row, value or default that does not match its column type, a default that cannot be deep-copied, non-integer index (including `bool`), or an incompatible filter operand. |
-| `IndexError` | Row index out of range. |
+RAMTable raises standard Python exceptions with descriptive messages.
+`ValueError` covers invalid names, arguments, row structure, unknown
+columns, and unknown operators. `TypeError` covers unsupported
+annotations, values that do not match their column type, copy failures,
+and invalid indexes. `IndexError` covers row indexes outside the table.
 
-Errors are standard Python exceptions with descriptive messages. See the
-[API reference](../reference/index.md) for the exceptions each method raises.
+The [errors reference](../reference/errors.md) lists every cause and the
+methods that raise it.
 
 ## 11. Scope and limitations
 

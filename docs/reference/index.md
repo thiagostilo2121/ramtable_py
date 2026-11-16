@@ -25,7 +25,8 @@ You normally create only a `Table`; it builds the matching `Columns` and
   and values.
 
 `Table` coordinates `Columns` and `Rows` and shares one record store between
-them. Data lives only in memory.
+them. Data lives only in memory. The [errors reference](errors.md) lists
+every exception and the methods that raise it.
 
 ## Package version
 
@@ -43,6 +44,9 @@ it is `"0+unknown"`.
 Implementation details outside the stable API. They are not part of the
 generated class pages:
 
+- `Columns._MISSING`: sentinel for an omitted `fill_value` or `default` in
+  `Columns.add`. It is internal and not part of the public API; passing it
+  directly is not supported.
 - `Columns._validate_name(name)`: checks that a name is a non-empty string
   containing non-whitespace characters; raises `ValueError` otherwise.
 - `Columns._validate_type(column_type)`: checks an annotation with

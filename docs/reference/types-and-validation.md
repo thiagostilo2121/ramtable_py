@@ -156,12 +156,10 @@ RAMTable never converts values. Inserting `"5"` into an `int` column raises
 
 ## Validation failures
 
-- `TypeError`: unsupported annotation, non-dictionary row, incompatible
-  cell value, incompatible update value, incompatible or non-copyable
-  default, or non-integer row index.
-- `ValueError`: missing or unknown row keys, non-existent column, empty
-  filter or update arguments, unknown filter operator, or update arguments
-  that do not satisfy the required structure.
-- `IndexError`: row index out of range.
+RAMTable raises `TypeError` when a value or annotation fails validation,
+and `ValueError` when a request names a missing column, uses an empty
+argument, or supplies a row with the wrong columns. `IndexError` marks a
+row index outside the table.
 
-See the [API reference](index.md) for the exceptions each method can raise.
+The [errors reference](errors.md) maps each exception to its causes and
+the methods that raise it.
