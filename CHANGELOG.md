@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.5.1dev0]
+## [0.5.1dev1]
 
 Updates site palette to brown brand color. Consolidates documentation and
 contract coverage without changing behavior.
