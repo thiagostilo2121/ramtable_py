@@ -3,10 +3,11 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.6.0dev1]
+## [0.6.0dev2]
 
 Adds bulk insertion and positional removal, exports `TypeValidator` from the
-package root, and marks the package as typed.
+package root, marks the package as typed, and refreshes the documentation
+styling.
 
 ### Added
 
@@ -24,6 +25,10 @@ package root, and marks the package as typed.
 - Added the return-value contract to the API reference.
 - Documented the new methods in the user guide, validation rules, and errors
   reference.
+- Updated the documentation palette with warm neutrals and brown table, code,
+  and API surfaces in light and dark modes.
+- Replaced check marks in the comparison table with "Yes" to avoid a
+  missing-glyph box in the site font.
 
 ## [0.5.1]
 
