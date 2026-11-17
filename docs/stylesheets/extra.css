@@ -1,19 +1,56 @@
 :root {
+  --rt-brown: #b07a3f;
+  --rt-brown-deep: #7d5121;
+  --rt-brown-soft: #c79a67;
+  --rt-surface: #faf6f0;
+  --rt-surface-strong: #f4ece1;
+  --rt-line: #e5d9c8;
+
   --md-primary-fg-color: #b07a3f;
   --md-primary-fg-color--light: #c79a67;
   --md-primary-fg-color--dark: #8a5a25;
   --md-accent-fg-color: #b07a3f;
   --md-accent-fg-color--transparent: #b07a3f1a;
   --md-typeset-a-color: #8a5a25;
+
+  --md-default-fg-color: #2b241ce0;
+  --md-default-fg-color--light: #2b241c99;
+  --md-default-fg-color--lighter: #2b241c5c;
+  --md-default-fg-color--lightest: #2b241c14;
+  --md-code-fg-color: #40301f;
+  --md-code-bg-color: #f6f0e7;
+  --md-code-bg-color--light: #f6f0e7b3;
+  --md-code-bg-color--lighter: #f6f0e74d;
+  --md-typeset-table-color: #e5d9c8;
+  --md-typeset-table-color--light: #f0e9df;
 }
 
 [data-md-color-scheme="slate"] {
+  --rt-surface: #1b1510;
+  --rt-surface-strong: #241c14;
+  --rt-line: #3a2c1e;
+
   --md-primary-fg-color: #8a5a25;
   --md-primary-fg-color--light: #b07a3f;
   --md-primary-fg-color--dark: #6b4319;
   --md-accent-fg-color: #d9a066;
   --md-accent-fg-color--transparent: #d9a0661a;
   --md-typeset-a-color: #d9a066;
+
+  --md-default-fg-color: #f0e7dcd6;
+  --md-default-fg-color--light: #f0e7dc8c;
+  --md-default-fg-color--lighter: #f0e7dc52;
+  --md-default-fg-color--lightest: #f0e7dc14;
+  --md-default-bg-color: #12100d;
+  --md-default-bg-color--light: #12100db3;
+  --md-default-bg-color--lighter: #12100d4d;
+  --md-default-bg-color--lightest: #12100d1f;
+  --md-code-fg-color: #e9dccb;
+  --md-code-bg-color: #211a13;
+  --md-code-bg-color--light: #211a13b3;
+  --md-code-bg-color--lighter: #211a134d;
+  --md-typeset-table-color: #3a2c1e;
+  --md-typeset-table-color--light: #241c14;
 }
 
 .md-typeset h1,
@@ -22,4 +59,63 @@
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
     Palatino, Georgia, serif;
   letter-spacing: -0.01em;
+}
+
+/* Tables carry the library's subject: give them a clear ledger structure. */
+.md-typeset table:not([class]) {
+  font-size: 0.7rem;
+  border-color: var(--rt-line);
+}
+
+.md-typeset table:not([class]) thead {
+  background-color: var(--rt-surface-strong);
+}
+
+.md-typeset table:not([class]) th {
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: var(--rt-surface);
+}
+
+/* Warm code surfaces so highlighted blocks sit inside the brand palette. */
+.md-typeset .highlight {
+  border: 0.05rem solid var(--rt-line);
+  border-radius: 0.15rem;
+}
+
+.md-typeset .highlight > pre > code {
+  background-color: transparent;
+}
+
+.md-typeset .doc-heading code {
+  color: var(--rt-brown-deep);
+  background-color: var(--rt-surface-strong);
+  border: 0.05rem solid var(--rt-line);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .doc-heading code {
+  color: var(--rt-brown-soft);
+}
+
+.md-footer {
+  border-top: 0.05rem solid var(--rt-line);
+}
+
+.md-footer-meta {
+  background-color: var(--rt-surface);
+}
+
+::selection {
+  background-color: #b07a3f40;
+}
+
+.md-typeset a:focus-visible,
+.md-nav__link:focus-visible,
+.md-header__button:focus-visible,
+.md-search__input:focus-visible,
+button:focus-visible {
+  outline: 0.1rem solid var(--rt-brown);
+  outline-offset: 0.15rem;
 }
