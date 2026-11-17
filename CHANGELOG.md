@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [0.6.0dev2]
+## [0.6.0rc0]
 
 Adds bulk insertion and positional removal, exports `TypeValidator` from the
 package root, marks the package as typed, and refreshes the documentation
