@@ -1,7 +1,7 @@
 """Smoke tests for the public package surface."""
 
 import ramtable
-from ramtable import Columns, Rows, Table
+from ramtable import Columns, Rows, Table, TypeValidator
 
 
 def test_public_classes_are_exported():
@@ -10,10 +10,12 @@ def test_public_classes_are_exported():
         "Columns",
         "Rows",
         "Table",
+        "TypeValidator",
     ]
     assert ramtable.Columns is Columns
     assert ramtable.Rows is Rows
     assert ramtable.Table is Table
+    assert ramtable.TypeValidator is TypeValidator
 
 
 def test_internal_sentinel_is_not_exported():

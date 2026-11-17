@@ -36,6 +36,7 @@ the RAMTable API.
 │   └── ramtable/
 │       ├── __init__.py
 │       ├── columns.py
+│       ├── py.typed
 │       ├── rows.py
 │       ├── table.py
 │       └── types.py
@@ -49,6 +50,7 @@ the RAMTable API.
 │   │   │   ├── rows.md
 │   │   │   ├── table.md
 │   │   │   └── types.md
+│   │   ├── errors.md
 │   │   ├── index.md
 │   │   └── types-and-validation.md
 │   ├── project/

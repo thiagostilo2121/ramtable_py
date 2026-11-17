@@ -6,8 +6,13 @@ the package docstrings. The [user guide](../guide/index.md) introduces the
 same API with examples.
 
 ```python
-from ramtable import Columns, Rows, Table, __version__
-from ramtable.types import TypeValidator
+from ramtable import (
+    Columns,
+    Rows,
+    Table,
+    TypeValidator,
+    __version__,
+)
 ```
 
 You normally create only a `Table`; it builds the matching `Columns` and
@@ -27,6 +32,23 @@ You normally create only a `Table`; it builds the matching `Columns` and
 `Table` coordinates `Columns` and `Rows` and shares one record store between
 them. Data lives only in memory. The [errors reference](errors.md) lists
 every exception and the methods that raise it.
+
+RAMTable ships a `py.typed` marker, so type checkers read the annotations
+from the installed package.
+
+## Return values
+
+| Method | Returns |
+|---|---|
+| `insert()`, `insert_many()` | `None` / number of inserted rows |
+| `remove()`, `pop()` | `None` / removed row |
+| `update()`, `delete()` | number of affected rows |
+| `clear()` | `None` |
+
+`insert()` and `remove()` return `None`. `insert_many()` returns the number
+of rows it inserted. `pop()` returns the removed row. `update()` and
+`delete()` return the number of rows they changed or deleted, including
+zero. `clear()` returns `None`.
 
 ## Package version
 
@@ -54,12 +76,14 @@ generated class pages:
 - `Rows._validate(row)`: checks the object type, the exact set of columns,
   and each value; raises `TypeError` or `ValueError` depending on the
   failure.
+- `Rows._prepare(row)`: returns a validated copy of a row with insert
+  defaults applied. Shared by `insert` and `insert_many`.
 - `Rows._filter(where)`: validates a condition dictionary and returns the
   stored rows that match it. Shared by `filter`, `delete`, and `update`;
   returned rows are internal references, not copies.
 - `Columns._insert_defaults(provided)`: returns deep copies of the insert
-  defaults for columns not listed in `provided`. `Rows.insert` passes the
-  columns already present in the row.
+  defaults for columns not listed in `provided`. `Rows.insert` and
+  `Rows.insert_many` pass the columns already present in the row.
 
 ## Copying behavior
 

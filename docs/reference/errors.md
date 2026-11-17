@@ -27,7 +27,7 @@ exact conditions. This page groups every exception by cause.
 | `ValueError` | Cannot remove last column. | `Columns.remove()` |
 | `ValueError` | No insert default. | `Columns.get_default()` |
 | `ValueError` | No insert default. | `Columns.remove_default()` |
-| `ValueError` | Wrong row columns. | `Rows.insert()`, `Rows.remove()` |
+| `ValueError` | Wrong row columns. | `Rows.insert()`, `Rows.insert_many()`, `Rows.remove()` |
 | `ValueError` | Row not found. | `Rows.remove()` |
 | `ValueError` | Invalid conditions. | `Rows.filter()`, `Rows.delete()` |
 | `ValueError` | Invalid conditions. | `Rows.update()` |
@@ -38,8 +38,8 @@ exact conditions. This page groups every exception by cause.
 | `TypeError` | Existing value does not match. | `Columns.update()` |
 | `TypeError` | Default does not match. | `Columns.update()` |
 | `TypeError` | Defaults not a dictionary. | `Table()`, `Columns()` |
-| `TypeError` | Row not a dictionary. | `Rows.insert()`, `Rows.remove()` |
-| `TypeError` | Value does not match type. | `Rows.insert()`, `Rows.remove()` |
+| `TypeError` | Row not a dictionary. | `Rows.insert()`, `Rows.insert_many()`, `Rows.remove()` |
+| `TypeError` | Value does not match type. | `Rows.insert()`, `Rows.insert_many()`, `Rows.remove()` |
 | `TypeError` | Assigned value does not match type. | `Rows.update()` |
 | `TypeError` | Invalid default. | `Table()`, `Columns()` |
 | `TypeError` | Invalid fill value or default. | `Columns.add()` |
@@ -49,7 +49,7 @@ exact conditions. This page groups every exception by cause.
 | `TypeError` | Cannot deep-copy value or default. | `Columns.set_default()` |
 | `TypeError` | Cannot deep-copy value or default. | `Columns.get_default()` |
 | `TypeError` | Cannot deep-copy value or default. | `Columns.get_defaults()` |
-| `TypeError` | Invalid row index. | `Rows.get()`, `Rows.get_one()` |
+| `TypeError` | Invalid row index. | `Rows.get()`, `Rows.get_one()`, `Rows.pop()` |
 | `TypeError` | Incompatible operand. | `Rows.filter()`, `Rows.delete()` |
 | `TypeError` | Incompatible operand. | `Rows.update()` |
-| `IndexError` | Out-of-range row index. | `Rows.get()`, `Rows.get_one()` |
+| `IndexError` | Out-of-range row index. | `Rows.get()`, `Rows.get_one()`, `Rows.pop()` |
