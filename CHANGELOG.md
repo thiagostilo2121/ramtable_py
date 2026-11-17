@@ -3,6 +3,33 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [0.6.0rc0]
+
+Adds bulk insertion and positional removal, exports `TypeValidator` from the
+package root, marks the package as typed, and refreshes the documentation
+styling.
+
+### Added
+
+- `Rows.insert_many(rows)` inserts an iterable of rows after validating the
+  whole batch. It applies insert defaults per row and returns the number of
+  inserted rows. A failure leaves the table unchanged.
+- `Rows.pop(index)` removes a row by position, accepts negative indexes, and
+  returns the removed row.
+- `py.typed` marker and `Typing :: Typed` classifier.
+- `TypeValidator` is available from the `ramtable` package root.
+
+### Changed
+
+- Documented `Rows.get_all()` as an alias of `Rows.get()` with no arguments.
+- Added the return-value contract to the API reference.
+- Documented the new methods in the user guide, validation rules, and errors
+  reference.
+- Updated the documentation palette with warm neutrals and brown table, code,
+  and API surfaces in light and dark modes.
+- Replaced check marks in the comparison table with "Yes" to avoid a
+  missing-glyph box in the site font.
+
 ## [0.5.1]
 
 Updates site palette to brown brand color. Consolidates documentation and

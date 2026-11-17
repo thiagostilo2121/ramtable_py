@@ -12,11 +12,11 @@ database is more than you need:
 
 | | Plain `list` / `dict` | RAMTable | SQL database |
 |---|:---:|:---:|:---:|
-| Schema with declared types | No | ✓ | ✓ |
-| Rows validated on write | No | ✓ | ✓ |
-| Schema changes with data present | manual | ✓ | ✓ |
-| Query language, indexes, constraints | No | No | ✓ |
-| Survives process exit | No | No | ✓ |
+| Schema with declared types | No | Yes | Yes |
+| Rows validated on write | No | Yes | Yes |
+| Schema changes with data present | manual | Yes | Yes |
+| Query language, indexes, constraints | No | No | Yes |
+| Survives process exit | No | No | Yes |
 | Setup | none | none | server or files |
 
 Typical uses include intermediate results of a multi-step process, temporary

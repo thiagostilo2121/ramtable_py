@@ -131,6 +131,8 @@ mean RAMTable implements its semantics.
   omitted columns that have an insert default, then checks that the
   resulting keys exactly match the schema and that each value matches its
   column's annotation. RAMTable validates insert defaults when you set them.
+- **`Rows.insert_many(rows)`**: applies the same checks to every row in the
+  iterable before storing any of them. A failure leaves the table unchanged.
 - **`Rows.remove(row)`**: performs the same validation before looking for
   an equal row.
 - **`Rows.update(where, values)`**: checks condition columns and operators,

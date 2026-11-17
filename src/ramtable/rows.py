@@ -1,6 +1,7 @@
 
 """Row insertion, retrieval, filtering, update, and removal operations."""
 
+from collections.abc import Iterable
 from typing import Any, Callable
 
 from .columns import Columns
@@ -150,13 +151,8 @@ class Rows:
             )
         ]
 
-    def insert(self, row: dict[str, Any]) -> None:
-        """Validate and append a shallow copy of ``row``.
-
-        Columns omitted from ``row`` are filled from the table's insert
-        defaults when available. Columns without a default remain required.
-        The copy is shallow, so mutable values stay shared. An insert
-        default is deep-copied for each row that omits the column.
+    def _prepare(self, row: dict[str, Any]) -> dict[str, Any]:
+        """Return a validated copy of ``row`` with defaults applied.
 
         Raises:
             TypeError: If the row or one of its values is invalid.
@@ -174,7 +170,75 @@ class Rows:
             completed[name] = value
 
         self._validate(completed)
-        self._storage.append(completed)
+        return completed
+
+    def insert(self, row: dict[str, Any]) -> None:
+        """Validate and append a shallow copy of ``row``.
+
+        Columns omitted from ``row`` are filled from the table's insert
+        defaults when available. Columns without a default remain required.
+        The copy is shallow, so mutable values stay shared. An insert
+        default is deep-copied for each row that omits the column.
+
+        Raises:
+            TypeError: If the row or one of its values is invalid.
+            ValueError: If the row does not have exactly the schema columns
+                after insert defaults are applied.
+        """
+
+        self._storage.append(self._prepare(row))
+
+    def insert_many(self, rows: Iterable[dict[str, Any]]) -> int:
+        """Validate and append every row in ``rows`` as one operation.
+
+        Columns omitted from a row are filled from the table's insert
+        defaults, with a deep copy per row. Every row is validated before
+        any row is stored, so a failure leaves the table unchanged.
+
+        Args:
+            rows: Iterable of row dictionaries.
+
+        Returns:
+            Number of inserted rows; zero when ``rows`` is empty.
+
+        Raises:
+            TypeError: If a row or one of its values is invalid.
+            ValueError: If a row does not have exactly the schema columns
+                after insert defaults are applied.
+        """
+
+        prepared = [self._prepare(row) for row in rows]
+        self._storage.extend(prepared)
+        return len(prepared)
+
+    def pop(self, index: int) -> dict[str, Any]:
+        """Remove and return a shallow copy of the row at ``index``.
+
+        Negative indexes are supported. ``bool`` is not accepted as an index,
+        although it is a subclass of ``int`` in Python.
+
+        Args:
+            index: Position of the row to remove.
+
+        Returns:
+            The removed row as a new dictionary.
+
+        Raises:
+            TypeError: If the index is not an integer or is a boolean.
+            IndexError: If the index is out of range.
+        """
+
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise TypeError("Row index must be an integer.")
+
+        try:
+            removed = self._storage.pop(index)
+        except IndexError:
+            raise IndexError(
+                f"Row index {index} is out of range."
+            ) from None
+
+        return removed.copy()
 
     def remove(self, row: dict[str, Any]) -> None:
         """Remove the first row equal to ``row`` after validating its shape.
@@ -319,9 +383,9 @@ class Rows:
     def get(self, *indexes: int) -> list[dict[str, Any]]:
         """Return all rows or copies of the requested positions.
 
-        With no arguments, return all rows. Indexes support negative values as
-        Python lists do; the requested order is preserved and repeated
-        indexes are allowed.
+        With no arguments, return all rows; this is the same as calling
+        ``get_all()``. Indexes support negative values as Python lists do;
+        the requested order is preserved and repeated indexes are allowed.
 
         Raises:
             TypeError: If an index is not an integer or is a boolean.
@@ -368,7 +432,10 @@ class Rows:
             ) from None
 
     def get_all(self) -> list[dict[str, Any]]:
-        """Return a new list containing a shallow copy of each row."""
+        """Return a new list containing a shallow copy of each row.
+
+        Alias of ``get()`` with no arguments.
+        """
         return [row.copy() for row in self._storage]
 
     def get_columns(self, *columns: str) -> dict[str, list[Any]]:
