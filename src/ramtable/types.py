@@ -3,7 +3,15 @@
 
 import types as std_types
 from collections import abc
-from typing import Annotated, Any, Literal, Union, get_args, get_origin
+from typing import (
+    Annotated,
+    Any,
+    Literal,
+    Union,
+    cast,
+    get_args,
+    get_origin,
+)
 
 
 class TypeValidator:
@@ -195,6 +203,6 @@ class TypeValidator:
                 return False
 
         try:
-            return isinstance(value, value_type)
+            return isinstance(value, cast(type, value_type))
         except TypeError:
             return False
