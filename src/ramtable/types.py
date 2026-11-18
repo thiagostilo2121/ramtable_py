@@ -2,6 +2,7 @@
 """Recursive validation of type annotations for RAMTable."""
 
 import types as std_types
+import typing
 from collections import abc
 from typing import (
     Annotated,
@@ -144,7 +145,13 @@ class TypeValidator:
                 return False
 
             if not args:
-                return True
+                # Bare ``typing.Tuple`` has no arguments and accepts any
+                # tuple. ``tuple[()]`` and ``Tuple[()]`` share the empty
+                # argument list but match only the empty tuple.
+                return (
+                    value_type is typing.Tuple  # noqa: UP006 - identity check
+                    or not value
+                )
 
             if len(args) == 2 and args[1] is Ellipsis:
                 return all(

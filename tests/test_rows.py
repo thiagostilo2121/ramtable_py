@@ -12,6 +12,13 @@ def test_insert_appends_a_valid_row(empty_table):
     assert empty_table.rows.get_one(0) == {"id": 1, "name": "Ada"}
 
 
+def test_insert_rejects_a_non_dictionary_row(empty_table):
+    with pytest.raises(TypeError, match="must be a dictionary"):
+        empty_table.rows.insert([])
+
+    assert len(empty_table.rows) == 0
+
+
 def test_insert_stores_a_shallow_copy_of_the_input_dictionary():
     table = Table("items", {"id": int, "tags": list[str]})
     row = {"id": 1, "tags": ["original"]}
@@ -212,6 +219,13 @@ def test_remove_rejects_a_row_that_does_not_exist(people_table):
 
     with pytest.raises(ValueError, match="does not exist"):
         people_table.rows.remove(row)
+
+    assert len(people_table.rows) == 3
+
+
+def test_remove_rejects_a_non_dictionary_row(people_table):
+    with pytest.raises(TypeError, match="must be a dictionary"):
+        people_table.rows.remove([])
 
     assert len(people_table.rows) == 3
 

@@ -56,9 +56,12 @@ from ramtable.types import TypeValidator
         Dict[str, int],
         Mapping[str, list[int]],
         tuple,
+        Tuple,
+        tuple[()],
         tuple[int, str],
         tuple[int, ...],
         Tuple[int, ...],
+        dict[()],
         type[int],
     ],
 )
@@ -172,6 +175,9 @@ def test_annotated_ignores_metadata_and_checks_only_the_base_type():
         ({"a": 1}, dict[str, int]),
         ({"a": [1, 2]}, Mapping[str, list[int]]),
         ((), tuple),
+        ((1, 2), Tuple),
+        ((), tuple[()]),
+        ({}, dict[()]),
         ((1, "a"), tuple[int, str]),
         ((1, 2, 3), tuple[int, ...]),
         (int, type[int]),
@@ -224,6 +230,16 @@ def test_unparameterized_containers_ignore_element_types():
     assert TypeValidator.matches_type([1, "two", None], list) is True
     assert TypeValidator.matches_type({"a": object()}, dict) is True
     assert TypeValidator.matches_type((1, "two"), tuple) is True
+
+
+def test_empty_tuple_annotation_matches_only_the_empty_tuple():
+    assert TypeValidator.matches_type((), tuple[()]) is True
+    assert TypeValidator.matches_type((1,), tuple[()]) is False
+
+
+def test_matches_type_rejects_annotations_unusable_with_isinstance():
+    assert TypeValidator.matches_type(int, type[42]) is False
+    assert TypeValidator.matches_type(1, TypeVar("T")) is False
 
 
 def test_matches_type_rejects_non_container_values_for_container_annotations():
