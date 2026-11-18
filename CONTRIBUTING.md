@@ -265,7 +265,9 @@ Follow the style and structure already used in `src/ramtable`:
 
 When behavior changes, update the relevant documentation in `docs/`:
 
-- `docs/guide/index.md` for user-facing workflows;
+- `docs/guide/index.md` for the guide overview and its list of pages;
+- `docs/guide/create-table.md`, `rows.md`, `filtering.md`,
+  `updating-deleting.md`, and `schema.md` for user-facing workflows;
 - `docs/guide/installation.md` for install steps;
 - the docstrings in `src/ramtable/` for signatures, arguments, returns, and
   exceptions, rendered in `docs/reference/api/`;
