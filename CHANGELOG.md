@@ -3,6 +3,36 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [1.0.0]
+
+Freezes the public contract with complete test coverage, a pinned linter, and
+written policies for compatibility and deprecation. No public API changed
+from `0.6.0`.
+
+### Added
+
+- A 1.0 guarantees page that names the frozen contract: public signatures,
+  error taxonomy, copy semantics, `TypeValidator` behavior for supported
+  annotations, version format, and publication channels.
+- A deprecation policy with the warning procedure, message format, and a
+  minimum permanence of one complete minor release before a major-release
+  removal.
+- Ruff 0.17.4 as the project linter, pinned in the `dev` extra and enforced
+  by a dedicated CI job.
+- Coverage reaches 100% for statements and branches in every package
+  module, and CI fails when total coverage drops below 98%.
+
+### Changed
+
+- `__all__` is sorted; the package test now compares contents and rejects
+  duplicates instead of fixing the order.
+- Development Status classifier is now `5 - Production/Stable`.
+
+### Fixed
+
+- `tuple[()]` now matches only the empty tuple instead of any tuple.
+  Unparameterized `typing.Tuple` still matches any tuple.
+
 ## [0.6.0]
 
 Adds bulk insertion and positional removal, exports `TypeValidator` from the
