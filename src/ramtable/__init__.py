@@ -18,9 +18,9 @@ except PackageNotFoundError:  # pragma: no cover - not installed
     __version__ = "0+unknown"
 
 __all__ = [
-    "__version__",
     "Columns",
     "Rows",
     "Table",
     "TypeValidator",
+    "__version__",
 ]

@@ -6,17 +6,19 @@ Package code is in `src/ramtable/`, tests in `tests/`.
 ## Setup and checks
 
 - Install: `python -m pip install --editable ".[dev]"` (the `dev` extra adds
-  only `pytest` and `pytest-cov`).
+  `pytest`, `pytest-cov`, and a pinned `ruff`).
 - Run everything: `python -m pytest` (`testpaths` is already `tests`).
 - One test: `python -m pytest tests/test_rows.py::test_name`.
-- Full CI equivalent: `python -m compileall -q src/ramtable`,
+- Full CI equivalent: `python -m ruff check .`,
+  `python -m compileall -q src/ramtable`,
   `python -c "from ramtable import Columns, Rows, Table"`, then
   `python -m pytest -ra --cov=ramtable --cov-report=term-missing`.
 - CI covers Python 3.11–3.15; a local venv may only have 3.14. Do not use
   syntax or APIs newer than 3.11.
-- No linter, formatter, or type checker is configured. Do not add one to
-  `pyproject.toml` unless asked. Match the existing style: 4 spaces, lines
-  near 79 columns, type hints, and docstrings with `Args`/`Returns`/`Raises`.
+- Ruff 0.17.4 is pinned in the `dev` extra and configured in
+  `pyproject.toml` (`python -m ruff check .`). No formatter or type checker
+  is configured. Match the existing style: 4 spaces, lines near 79 columns,
+  type hints, and docstrings with `Args`/`Returns`/`Raises`.
 - Docs dependencies are pinned in `docs/requirements.txt`, not in a
   `pyproject.toml` extra. Install them, then build:
   `python -m pip install -r docs/requirements.txt`,

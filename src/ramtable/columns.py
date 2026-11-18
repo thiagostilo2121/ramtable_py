@@ -185,7 +185,9 @@ class Columns:
                     "Fill value cannot be deep-copied."
                 ) from error
 
-            for row, value in zip(self._rows_storage, fill_values):
+            for row, value in zip(
+                self._rows_storage, fill_values, strict=True
+            ):
                 row[name] = value
 
         self._columns[name] = column_type

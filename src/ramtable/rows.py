@@ -1,8 +1,8 @@
 
 """Row insertion, retrieval, filtering, update, and removal operations."""
 
-from collections.abc import Iterable
-from typing import Any, Callable
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from .columns import Columns
 from .types import TypeValidator

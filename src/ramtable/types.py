@@ -163,7 +163,7 @@ class TypeValidator:
                 len(value) == len(args)
                 and all(
                     cls.matches_type(item, expected)
-                    for item, expected in zip(value, args)
+                    for item, expected in zip(value, args, strict=True)
                 )
             )
 
