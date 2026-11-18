@@ -1,0 +1,16 @@
+{% extends "main.html" %}
+{% block content %}
+  <h1>Page not found</h1>
+  <p>
+    The page you requested does not exist, or it moved to a new address.
+  </p>
+  <ul>
+    <li><a href="{{ config.site_url }}">Home</a></li>
+    <li><a href="{{ config.site_url }}guide/">User guide</a></li>
+    <li><a href="{{ config.site_url }}reference/">API reference</a></li>
+    <li><a href="{{ config.site_url }}project/changelog/">Changelog</a></li>
+  </ul>
+  <p>
+    Use the search box to find a symbol, a method, or a guide section.
+  </p>
+{% endblock %}

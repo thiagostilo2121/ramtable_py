@@ -33,6 +33,24 @@ from `0.6.0`.
 - `tuple[()]` now matches only the empty tuple instead of any tuple.
   Unparameterized `typing.Tuple` still matches any tuple.
 
+### Documentation
+
+- Repository links in the site header and footer, a GitHub/PyPI social row,
+  a copyright notice with the MIT license, previous/next page navigation in
+  the footer, a back-to-top button, an "Edit this page" action, and a custom
+  404 page with links back to the main sections.
+- A custom logo and favicon.
+- The user guide is split into standalone pages — create a table, insert and
+  read rows, filter rows, update and delete rows, and change the schema —
+  each with its own runnable examples, plus an overview page with the scope,
+  limitations, and error summary.
+- Headings use a serif stack with wider fallbacks, added rules under `h2`,
+  subtle borders on inline code and admonitions, and left alignment for the
+  first column of plain tables.
+- The API reference pages render class headings once instead of duplicating
+  them under the page title.
+- The comparison table on the homepage names its first column.
+
 ## [0.6.0]
 
 Adds bulk insertion and positional removal, exports `TypeValidator` from the

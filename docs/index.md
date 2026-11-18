@@ -10,7 +10,7 @@ nothing to disk.
 Use RAMTable when a plain `list` or `dict` lacks structure and a persistent
 database is more than you need:
 
-| | Plain `list` / `dict` | RAMTable | SQL database |
+| Capability | Plain `list` / `dict` | RAMTable | SQL database |
 |---|:---:|:---:|:---:|
 | Schema with declared types | No | Yes | Yes |
 | Rows validated on write | No | Yes | Yes |

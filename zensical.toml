@@ -1,13 +1,28 @@
 [project]
 site_name = "RAMTable"
 site_url = "https://thiagostilo2121.github.io/ramtable_py/"
+site_description = """Typed in-memory tables for Python with runtime
+schema and value validation, and no dependencies."""
+site_author = "Thiago Stilo"
+copyright = """Copyright &copy; 2025 Thiago Stilo &middot;
+Released under the MIT license."""
+repo_url = "https://github.com/thiagostilo2121/ramtable_py"
+repo_name = "thiagostilo2121/ramtable_py"
+edit_uri = "edit/main/docs/"
 docs_dir = "docs"
 site_dir = "site"
 extra_css = ["stylesheets/extra.css"]
 nav = [
   { "Home" = "index.md" },
   { "Installation" = "guide/installation.md" },
-  { "Guide" = "guide/index.md" },
+  { "Guide" = [
+    { "Overview" = "guide/index.md" },
+    { "Create a table" = "guide/create-table.md" },
+    { "Insert and read rows" = "guide/rows.md" },
+    { "Filter rows" = "guide/filtering.md" },
+    { "Update and delete rows" = "guide/updating-deleting.md" },
+    { "Change the schema" = "guide/schema.md" },
+  ] },
   { "Reference" = [
     { "Overview" = "reference/index.md" },
     { "API" = [
@@ -33,12 +48,21 @@ nav = [
 [project.theme]
 variant = "modern"
 language = "en"
+custom_dir = "overrides"
 font = false
+logo = "images/logo.svg"
+favicon = "images/logo.svg"
 features = [
   "navigation.path",
   "navigation.tracking",
+  "navigation.footer",
+  "navigation.top",
   "content.code.copy",
+  "content.action.edit",
 ]
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
 
 [[project.theme.palette]]
 media = "(prefers-color-scheme: light)"
@@ -60,11 +84,21 @@ toggle.name = "Switch to light mode"
 base_path = ["."]
 restrict_base_path = true
 
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/thiagostilo2121/ramtable_py"
+name = "RAMTable on GitHub"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/ramtable/"
+name = "RAMTable on PyPI"
+
 [project.plugins.markdown-exec]
 
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["src"]
 options.docstring_style = "google"
 options.show_source = false
-options.show_root_heading = true
+options.show_root_heading = false
 options.filters = ["!^_(?!_)"]
