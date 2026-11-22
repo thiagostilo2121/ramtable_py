@@ -3,7 +3,7 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
-## [1.0.0rc0]
+## [1.0.0]
 
 Freezes the public contract with complete test coverage, a pinned linter, and
 written policies for compatibility and deprecation. No public API changed
