@@ -56,7 +56,9 @@ the RAMTable API.
 │   ├── project/
 │   │   ├── changelog.md
 │   │   ├── contributing.md
+│   │   ├── deprecation.md
 │   │   ├── development.md
+│   │   ├── guarantees.md
 │   │   ├── license.md
 │   │   └── releases.md
 │   ├── stylesheets/
@@ -81,9 +83,10 @@ the RAMTable API.
 - `docs/`: landing page, installation steps, user guide, API reference,
   validation rules, and project pages.
 - `docs/reference/api/`: class pages generated from the package docstrings.
-- `docs/project/`: development guide, release policy, changelog,
-  contribution guide, and license. The changelog, contribution, and license
-  pages include the matching files from the repository root.
+- `docs/project/`: development guide, release policy, deprecation policy,
+  1.0 guarantees, changelog, contribution guide, and license. The changelog,
+  contribution, and license pages include the matching files from the
+  repository root.
 - `zensical.toml`: site configuration for Zensical.
 - `scripts/check_built_site.py`: verifies links and anchors in the built site.
 - `scripts/generate_release_metadata.py`: reads the declared versions from
@@ -109,9 +112,10 @@ development dependencies:
 python -m pip install --editable ".[dev]"
 ```
 
-Run the test suite from the repository root:
+Run the linter and the test suite from the repository root:
 
 ```bash
+python -m ruff check .
 python -m pytest
 ```
 
@@ -167,8 +171,9 @@ arrive through snippets. The checker reads the generated HTML and covers
 those links.
 
 GitHub Actions runs the test suite, byte-compilation, and import checks on
-every supported Python version. It also builds the wheel, installs it into a
-clean virtual environment, and runs `examples/quick_start.py`. Release pull
+every supported Python version, plus Ruff in a dedicated job. It also builds
+the wheel, installs it into a clean virtual environment, and runs
+`examples/quick_start.py`. Release pull
 requests get package validation too. The docs workflow validates pull
 requests to `main` and deploys from `main`; a notifier rebuilds the site when
 `dev` or `test_pypi` changes `pyproject.toml`. Run the tests before
@@ -236,6 +241,7 @@ environment on PyPI and TestPyPI. See the workflow files in
 
 ## Project status
 
-RAMTable is in early development. Document new capabilities in the changelog
-and API reference when they ship. Future plans are not compatibility
+RAMTable has a stable 1.0 contract, described on the
+[1.0 guarantees](guarantees.md) page. Document new capabilities in the
+changelog and API reference when they ship. Future plans are not compatibility
 guarantees.

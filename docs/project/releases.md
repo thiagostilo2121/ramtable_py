@@ -7,7 +7,7 @@ version policy and the versions each branch and package index report.
 
 | Branch | Version form | Example | Published to |
 |---|---|---|---|
-| `dev` | `X.Y.ZdevN` | `0.4.0dev0` | nothing |
+| `dev` | `X.Y.ZdevN` between releases, `X.Y.Z` for a release bump | `0.4.0dev0`, `0.4.0` | nothing |
 | `test_pypi` | `X.Y.ZrcN` or `X.Y.Z` | `0.4.0rc0`, `0.4.0` | TestPyPI |
 | `main` | `X.Y.Z` | `0.4.0` | PyPI |
 

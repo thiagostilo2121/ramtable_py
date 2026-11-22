@@ -57,8 +57,29 @@
 .md-typeset h2,
 .md-typeset h3 {
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
-    Palatino, Georgia, serif;
+    Palatino, "URW Palladio L", "Liberation Serif", Georgia, serif;
+  font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+.md-typeset h1 {
+  letter-spacing: -0.015em;
+}
+
+.md-typeset h2 {
+  padding-bottom: 0.35rem;
+  border-bottom: 0.05rem solid var(--rt-line);
+}
+
+/* Inline code stays quiet in prose; headings keep the brand tint. */
+.md-typeset :not(pre) > code {
+  border: 0.05rem solid var(--rt-line);
+  border-radius: 0.15rem;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 0.15rem;
 }
 
 /* Tables carry the library's subject: give them a clear ledger structure. */
@@ -73,6 +94,13 @@
 
 .md-typeset table:not([class]) th {
   color: var(--md-default-fg-color);
+  font-weight: 600;
+}
+
+/* The first column names the subject; later columns hold short values. */
+.md-typeset table:not([class]) th:first-child,
+.md-typeset table:not([class]) td:first-child {
+  text-align: left;
 }
 
 .md-typeset table:not([class]) tbody tr:hover {
