@@ -5,13 +5,14 @@ from ramtable import Columns, Rows, Table, TypeValidator
 
 
 def test_public_classes_are_exported():
-    assert ramtable.__all__ == [
+    assert set(ramtable.__all__) == {
         "__version__",
         "Columns",
         "Rows",
         "Table",
         "TypeValidator",
-    ]
+    }
+    assert len(ramtable.__all__) == len(set(ramtable.__all__))
     assert ramtable.Columns is Columns
     assert ramtable.Rows is Rows
     assert ramtable.Table is Table

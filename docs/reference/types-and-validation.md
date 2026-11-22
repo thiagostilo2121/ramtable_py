@@ -92,9 +92,10 @@ RAMTable supports parameterized and unparameterized forms of:
 | `Mapping[K, V]` | The value must satisfy `collections.abc.Mapping`; keys and values are validated recursively. |
 
 Unparameterized forms (such as `list` or `dict`) check the container class
-without inspecting its elements. An empty container of the right class
-satisfies a parameterized form; it has no elements to contradict the
-annotation.
+without inspecting its elements. An empty subscript such as `dict[()]` or
+`list[()]` behaves like the unparameterized form. An empty container of the
+right class satisfies a parameterized form; it has no elements to contradict
+the annotation.
 
 Parameterized sequences and sets accept one type argument. Mappings accept
 two type arguments.
@@ -108,12 +109,14 @@ with one repeated element type:
 tuple
 tuple[int, str]
 tuple[int, ...]
+tuple[()]
 ```
 
 - `tuple[int, str]` requires length two and checks each position against
   its corresponding type.
 - `tuple[int, ...]` permits any length and checks every item as `int`.
 - `tuple` checks only that the value is a tuple.
+- `tuple[()]` accepts only the empty tuple.
 
 ## Checking annotation support
 

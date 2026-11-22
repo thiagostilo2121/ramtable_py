@@ -3,6 +3,54 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [1.0.0rc0]
+
+Freezes the public contract with complete test coverage, a pinned linter, and
+written policies for compatibility and deprecation. No public API changed
+from `0.6.0`.
+
+### Added
+
+- A 1.0 guarantees page that names the frozen contract: public signatures,
+  error taxonomy, copy semantics, `TypeValidator` behavior for supported
+  annotations, version format, and publication channels.
+- A deprecation policy with the warning procedure, message format, and a
+  minimum permanence of one complete minor release before a major-release
+  removal.
+- Ruff 0.17.4 as the project linter, pinned in the `dev` extra and enforced
+  by a dedicated CI job.
+- Coverage reaches 100% for statements and branches in every package
+  module, and CI fails when total coverage drops below 98%.
+
+### Changed
+
+- `__all__` is sorted; the package test now compares contents and rejects
+  duplicates instead of fixing the order.
+- Development Status classifier is now `5 - Production/Stable`.
+
+### Fixed
+
+- `tuple[()]` now matches only the empty tuple instead of any tuple.
+  Unparameterized `typing.Tuple` still matches any tuple.
+
+### Documentation
+
+- Repository links in the site header and footer, a GitHub/PyPI social row,
+  a copyright notice with the MIT license, previous/next page navigation in
+  the footer, a back-to-top button, an "Edit this page" action, and a custom
+  404 page with links back to the main sections.
+- A custom logo and favicon.
+- The user guide is split into standalone pages — create a table, insert and
+  read rows, filter rows, update and delete rows, and change the schema —
+  each with its own runnable examples, plus an overview page with the scope,
+  limitations, and error summary.
+- Headings use a serif stack with wider fallbacks, added rules under `h2`,
+  subtle borders on inline code and admonitions, and left alignment for the
+  first column of plain tables.
+- The API reference pages render class headings once instead of duplicating
+  them under the page title.
+- The comparison table on the homepage names its first column.
+
 ## [0.6.0]
 
 Adds bulk insertion and positional removal, exports `TypeValidator` from the

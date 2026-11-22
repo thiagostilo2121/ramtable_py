@@ -22,9 +22,10 @@ import subprocess
 import sys
 import time
 import tomllib
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.error import URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -409,7 +410,7 @@ def write_outputs(
 
 
 def _now() -> str:
-    current = datetime.now(timezone.utc).replace(microsecond=0)
+    current = datetime.now(UTC).replace(microsecond=0)
     return current.isoformat().replace("+00:00", "Z")
 
 

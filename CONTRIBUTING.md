@@ -152,9 +152,9 @@ RAMTable requires **Python 3.11 or later**.
    python -m pip install --editable ".[dev]"
    ```
 
-RAMTable has no runtime dependencies. The `dev` extra installs `pytest` and
-`pytest-cov`. If you need to build distributions, install the build tools
-separately:
+RAMTable has no runtime dependencies. The `dev` extra installs `pytest`,
+`pytest-cov`, and `ruff`. If you need to build distributions, install the
+build tools separately:
 
 ```bash
 python -m pip install build twine
@@ -162,13 +162,21 @@ python -m pip install build twine
 
 ## Checks, testing, and supported Python versions
 
-The test suite lives in `tests/` and uses pytest. No linter, formatter, or
-static type checker is configured.
+The test suite lives in `tests/` and uses pytest. Ruff **0.17.4** checks the
+code and is pinned in the `dev` extra. The configuration lives in
+`pyproject.toml` and covers imports, deprecated syntax, common bugs, and
+`__all__` ordering. No formatter or static type checker is configured.
 
 Run the suite from the repository root:
 
 ```bash
 python -m pytest
+```
+
+Run the linter:
+
+```bash
+python -m ruff check .
 ```
 
 To include coverage information:
@@ -178,10 +186,11 @@ python -m pytest --cov=ramtable --cov-report=term-missing
 ```
 
 The CI workflow installs the package and its development dependencies, runs
-the test suite, byte-compiles the package, and checks the public imports. You
-can run the non-test checks locally:
+the linter and the test suite, byte-compiles the package, and checks the
+public imports. You can run the non-test checks locally:
 
 ```bash
+python -m ruff check .
 python -m compileall -q src/ramtable
 python -c "from ramtable import Columns, Rows, Table"
 ```
@@ -256,7 +265,9 @@ Follow the style and structure already used in `src/ramtable`:
 
 When behavior changes, update the relevant documentation in `docs/`:
 
-- `docs/guide/index.md` for user-facing workflows;
+- `docs/guide/index.md` for the guide overview and its list of pages;
+- `docs/guide/create-table.md`, `rows.md`, `filtering.md`,
+  `updating-deleting.md`, and `schema.md` for user-facing workflows;
 - `docs/guide/installation.md` for install steps;
 - the docstrings in `src/ramtable/` for signatures, arguments, returns, and
   exceptions, rendered in `docs/reference/api/`;
