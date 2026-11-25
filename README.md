@@ -4,6 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![PyPI](https://img.shields.io/pypi/v/ramtable)](https://pypi.org/project/ramtable/)
 [![TestPyPI](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftest.pypi.org%2Fpypi%2Framtable%2Fjson&label=TestPyPI&query=%24.info.version&color=blue)](https://test.pypi.org/project/ramtable/)
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/thiagostilo2121/badge.svg)](https://hub.xerj.org/contributors/thiagostilo2121)
 
 RAMTable stores typed tables in memory for data that lives as long as the
 program. You declare a schema, and the table validates every row.

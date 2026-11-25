@@ -4,7 +4,7 @@ site_url = "https://thiagostilo2121.github.io/ramtable_py/"
 site_description = """Typed in-memory tables for Python with runtime
 schema and value validation, and no dependencies."""
 site_author = "Thiago Stilo"
-copyright = """Copyright &copy; 2025 Thiago Stilo &middot;
+copyright = """Copyright &copy; 2026 Thiago Stilo &middot;
 Released under the MIT license."""
 repo_url = "https://github.com/thiagostilo2121/ramtable_py"
 repo_name = "thiagostilo2121/ramtable_py"

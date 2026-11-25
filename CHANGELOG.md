@@ -3,6 +3,16 @@
 Notable changes to RAMTable are documented in this file. The history starts
 with the project's first version.
 
+## [1.1.0dev0]
+
+Opens the `1.1.0` development cycle. No public API changed.
+
+### Documentation
+
+- A XERJ Corpus Hub contributor badge in the README, linking to the
+  contributor profile.
+- The site footer now shows the 2026 copyright year.
+
 ## [1.0.0]
 
 Freezes the public contract with complete test coverage, a pinned linter, and
